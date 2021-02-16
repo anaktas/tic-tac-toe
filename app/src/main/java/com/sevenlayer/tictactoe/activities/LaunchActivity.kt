@@ -1,6 +1,7 @@
 package com.sevenlayer.tictactoe.activities
 
 import android.Manifest
+import android.bluetooth.BluetoothAdapter
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -59,13 +60,22 @@ class LaunchActivity : AppCompatActivity(), LaunchContract.View {
   }
 
   override fun onEnableBT(intent: Intent) {
+    Timber.d("onEnableBT()")
     startActivityForResult(intent, REQUEST_ENABLE_BT)
   }
 
   override fun provideContext(): Context = this
 
   override fun moveAlong() {
+    Timber.d("moveAlong()")
+    val discoverableIntent: Intent = Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE).apply {
+      putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, 300)
+    }
 
+    startActivity(discoverableIntent)
+
+    startActivity(Intent(this, PairingActivity::class.java))
+    overridePendingTransition(R.anim.fade_in, R.anim.fade_out)
   }
 
   override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
@@ -84,14 +94,15 @@ class LaunchActivity : AppCompatActivity(), LaunchContract.View {
   }
 
   private fun checkPermissions() {
+    Timber.d("checkPermissions()")
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-      val isBackgroundLocationGranted = ContextCompat.checkSelfPermission(baseContext, Manifest.permission.ACCESS_BACKGROUND_LOCATION) != PackageManager.PERMISSION_GRANTED
-      val isFineLocationGranted = ContextCompat.checkSelfPermission(baseContext, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
-      val isCoarseLocationGranted = ContextCompat.checkSelfPermission(baseContext, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED
+      val isBackgroundLocationNotGranted = ContextCompat.checkSelfPermission(baseContext, Manifest.permission.ACCESS_BACKGROUND_LOCATION) != PackageManager.PERMISSION_GRANTED
+      val isFineLocationNotGranted = ContextCompat.checkSelfPermission(baseContext, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
+      val isCoarseLocationNotGranted = ContextCompat.checkSelfPermission(baseContext, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED
 
-      val arePermissionsGranted = isBackgroundLocationGranted && isFineLocationGranted && isCoarseLocationGranted
+      val arePermissionsNotGranted = isBackgroundLocationNotGranted && isFineLocationNotGranted && isCoarseLocationNotGranted
 
-      if (arePermissionsGranted) {
+      if (arePermissionsNotGranted) {
         ActivityCompat.requestPermissions(
             this,
             arrayOf(
