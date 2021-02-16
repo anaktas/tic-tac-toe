@@ -3,6 +3,7 @@ package com.sevenlayer.tictactoe.core.presenters
 import android.bluetooth.BluetoothAdapter
 import android.content.Intent
 import com.sevenlayer.tictactoe.core.contracts.LaunchContract
+import timber.log.Timber
 
 /**
  * @author Anastasios Daris (t.daris@7linternational.com)
@@ -15,6 +16,7 @@ class LaunchPresenter(private val view: LaunchContract.View): LaunchContract.Pre
   }
 
   override fun enableBT() {
+    Timber.d("enableBT()")
     if (bluetoothAdapter == null) {
       view.onBTNotSupported()
     } else {
