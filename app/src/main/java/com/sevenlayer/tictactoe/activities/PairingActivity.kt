@@ -1,5 +1,6 @@
 package com.sevenlayer.tictactoe.activities
 
+import android.content.Intent
 import android.os.Bundle
 import android.widget.Button
 import android.widget.TextView
@@ -18,11 +19,12 @@ class PairingActivity : AppCompatActivity() {
     continueButton = findViewById(R.id.continue_btn)
 
     continueButton.setOnClickListener {
-
+      moveAlong()
     }
   }
 
   private fun moveAlong() {
-
+    startActivity(Intent(this, ServerClientPickupActivity::class.java))
+    overridePendingTransition(R.anim.fade_in, R.anim.fade_out)
   }
 }
