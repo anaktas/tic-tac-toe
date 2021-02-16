@@ -6,6 +6,7 @@
     values-round/strings.xml for round devices.
     -->
     <string name="hello_world">Hello Square World!</string>
-    <string name="welcome">Welcome! In order to continue with the game, you have to allow the bluetooth and location permissions and enable your bluetooth. If you wonder why location permissions, it\'s because the android API needs this permissions alongside with the bluetooth permission in order to return the list with the visible devices.</string>
+    <string name="welcome">Welcome! In order to continue with the game, you have to allow the location permissions and enable your bluetooth. If you wonder why location permissions, it\'s because the android API needs this permissions in order to return the list with the visible devices.</string>
+    <string name="pairing_advice">Please pair your phone with your opponent\'s phone and continue.</string>
     <string name="continue_txt">Continue</string>
 </resources>
