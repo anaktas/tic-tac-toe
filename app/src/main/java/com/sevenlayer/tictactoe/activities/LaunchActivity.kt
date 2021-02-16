@@ -19,6 +19,11 @@ import com.sevenlayer.tictactoe.core.contracts.LaunchContract
 import com.sevenlayer.tictactoe.core.presenters.LaunchPresenter
 import timber.log.Timber
 
+/**
+ * The launch screen activity.
+ *
+ * @author Anastasios Daris <t.daris@7linternational.com>
+ */
 class LaunchActivity : AppCompatActivity(), LaunchContract.View {
   private val PERMISSION: Int = 4556
   private val REQUEST_ENABLE_BT: Int = 4557
@@ -93,6 +98,9 @@ class LaunchActivity : AppCompatActivity(), LaunchContract.View {
     }
   }
 
+  /**
+   * Checks if the app has the necessary permissions granted.
+   */
   private fun checkPermissions() {
     Timber.d("checkPermissions()")
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {

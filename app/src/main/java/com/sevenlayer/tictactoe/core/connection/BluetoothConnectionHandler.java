@@ -19,20 +19,56 @@ import io.reactivex.subjects.PublishSubject;
 import timber.log.Timber;
 
 /**
+ * This singleton instance is gonna handle the BT connection and the sockets.
+ *
  * @author Anastasios Daris (t.daris@7linternational.com)
  */
 public class BluetoothConnectionHandler {
+    /**
+     * The BT service UUID.
+     */
     private final static UUID uuid = UUID.fromString("00000000-0000-1000-8000-00805F9B34FA");
+
+    /**
+     * The BT connection handler instance.
+     */
     private static BluetoothConnectionHandler sInstance;
 
+    /**
+     * The server socket.
+     */
     private BluetoothServerSocket serverSocket;
+
+    /**
+     * The client socket.
+     */
     private BluetoothSocket clientSocket;
+
+    /**
+     * The BT adapter.
+     */
     private final BluetoothAdapter bluetoothAdapter;
 
+    private BluetoothDevice device;
+
+    /**
+     * The incoming {@link InputStream}.
+     */
     private InputStream inputStream;
+
+    /**
+     * The outgoing {@link OutputStream}.
+     */
     private OutputStream outputStream;
 
+    /**
+     * The message observable for the incoming messages.
+     */
     private final PublishSubject<String> messageObservable = PublishSubject.create();
+
+    /**
+     * The BT connection status observable.
+     */
     private final PublishSubject<BluetoothConnectionStatus> connectionStatusObservable = PublishSubject.create();
 
     private BluetoothConnectionHandler() {
@@ -45,14 +81,36 @@ public class BluetoothConnectionHandler {
         return sInstance;
     }
 
+    /**
+     * Returns the message observable.
+     *
+     * @return {@link Observable<String>}
+     */
     public Observable<String> getMessageObservable() {
         return messageObservable;
     }
 
+    /**
+     * Returns the connections status observable.
+     *
+     * @return {@link Observable<BluetoothConnectionStatus>}
+     */
     public Observable<BluetoothConnectionStatus> getConnectionStatusObservable() {
         return connectionStatusObservable;
     }
 
+    /**
+     * Set's the {@link BluetoothDevice} for the client.
+     *
+     * @param device a {@link BluetoothDevice}
+     */
+    public void setDevice(BluetoothDevice device) {
+        this.device = device;
+    }
+
+    /**
+     * Initializes the BT server and creates the corresponding socket.
+     */
     public void initServer() {
         BluetoothServerSocket tmp = null;
 
@@ -67,6 +125,9 @@ public class BluetoothConnectionHandler {
         serverSocket = tmp;
     }
 
+    /**
+     * Starts the BT server which is listening for incoming client sockets.
+     */
     public void startServer() {
         Executor executor = AsyncFactory.generateExecutor();
         executor.execute(() -> {
@@ -102,7 +163,10 @@ public class BluetoothConnectionHandler {
         });
     }
 
-    public void initClient(BluetoothDevice device) {
+    /**
+     * Initializes the BT client and the corresponding socket.
+     */
+    public void initClient() {
         BluetoothSocket tmp = null;
 
         try {
@@ -116,16 +180,29 @@ public class BluetoothConnectionHandler {
         clientSocket = tmp;
     }
 
+    /**
+     * Performs the client socket connection.
+     */
     public void startClient() {
         Executor executor = AsyncFactory.generateExecutor();
         executor.execute(() -> {
             bluetoothAdapter.cancelDiscovery();
 
             try {
-                clientSocket.connect();
+                if (clientSocket != null) {
+                    clientSocket.connect();
 
-                inputStream = clientSocket.getInputStream();
-                outputStream = clientSocket.getOutputStream();
+                    inputStream = clientSocket.getInputStream();
+                    outputStream = clientSocket.getOutputStream();
+
+                    byte[] buffer = new byte[256];
+                    DataInputStream dataInputStream = new DataInputStream(inputStream);
+
+                    int bytes = dataInputStream.read(buffer);
+                    String message = new String(buffer, 0, bytes);
+
+                    messageObservable.onNext(message);
+                }
             } catch (IOException e) {
                 Timber.e(e);
 
@@ -138,6 +215,9 @@ public class BluetoothConnectionHandler {
         });
     }
 
+    /**
+     * Stops the server by closing the corresponding socket and the streams.
+     */
     public void stopServer() {
         try {
             if (inputStream != null) inputStream.close();
@@ -151,6 +231,9 @@ public class BluetoothConnectionHandler {
         }
     }
 
+    /**
+     * Stops the client by closing the corresponding socket and the streams.
+     */
     public void stopClient() {
         try {
             if (outputStream != null) {
@@ -163,6 +246,11 @@ public class BluetoothConnectionHandler {
         }
     }
 
+    /**
+     * Sends a message to the server.
+     *
+     * @param message the gaming movement message
+     */
     public void send(String message) {
         try {
             outputStream.write(message.getBytes());
@@ -171,12 +259,18 @@ public class BluetoothConnectionHandler {
         }
     }
 
+    /**
+     * Clears the entire instance.
+     */
     public void die() {
         stopServer();
         stopClient();
         sInstance = null;
     }
 
+    /**
+     * A custom connections status enumeration.
+     */
     public enum BluetoothConnectionStatus {
         CONNECTED,
         FAILED

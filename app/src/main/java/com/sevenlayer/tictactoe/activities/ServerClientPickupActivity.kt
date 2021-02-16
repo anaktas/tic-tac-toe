@@ -10,6 +10,11 @@ import com.sevenlayer.tictactoe.core.contracts.ServerClientPickupContract
 import com.sevenlayer.tictactoe.core.game.Game
 import com.sevenlayer.tictactoe.core.presenters.ServerClientPickupPresenter
 
+/**
+ * The pick up screen for the server or client player activity.
+ *
+ * @author Anastasios Daris <t.daris@7linternational.com>
+ */
 class ServerClientPickupActivity : AppCompatActivity(), ServerClientPickupContract.View {
   private lateinit var continueAsServer: Button
   private lateinit var continueAsClient: Button

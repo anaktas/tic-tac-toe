@@ -7,6 +7,11 @@ import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import com.sevenlayer.tictactoe.R
 
+/**
+ * The pairing rationale screen activity.
+ *
+ * @author Anastasios Daris <t.daris@7linternational.com>
+ */
 class PairingActivity : AppCompatActivity() {
   private lateinit var message: TextView
   private lateinit var continueButton: Button
@@ -23,6 +28,9 @@ class PairingActivity : AppCompatActivity() {
     }
   }
 
+  /**
+   * Moves along to the next screen which is the ServerClientPickupActivity.
+   */
   private fun moveAlong() {
     startActivity(Intent(this, ServerClientPickupActivity::class.java))
     overridePendingTransition(R.anim.fade_in, R.anim.fade_out)
