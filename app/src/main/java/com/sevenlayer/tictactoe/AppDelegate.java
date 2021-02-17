@@ -11,12 +11,21 @@ import androidx.multidex.MultiDexApplication;
 import timber.log.Timber;
 
 /**
+ * The application instance delegate.
+ *
  * @author Anastasios Daris (t.daris@7linternational.com)
  */
 public class AppDelegate extends MultiDexApplication implements Application.ActivityLifecycleCallbacks {
     private static AppDelegate sInstance;
 
+    /**
+     * Activity counter.
+     */
     private int activityReferences = 0;
+
+    /**
+     * Flag which indicated if the current activity is changing it's configuration.
+     */
     private boolean isActivityChangingConfigurations = false;
 
     public static AppDelegate getInstance() {
