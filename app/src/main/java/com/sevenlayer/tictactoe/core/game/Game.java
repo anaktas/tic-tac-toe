@@ -68,6 +68,8 @@ public class Game {
      */
     private final int[][] board = new int[3][3];
 
+    private int turn;
+
     /**
      * The board update observable.
      */
@@ -160,6 +162,14 @@ public class Game {
                             int row = Integer.parseInt(entries[0]);
                             int col = Integer.parseInt(entries[1]);
                             int playerType = Integer.parseInt(entries[1]);
+
+                            // If the server player played, then it's the
+                            // clients turn
+                            if (playerType == SERVER_PLAYER) {
+                                turn = CLIENT_PLAYER;
+                            } else { // otherwise it's the servers turn.
+                                turn = SERVER_PLAYER;
+                            }
 
                             updateBoard(row, col, playerType);
                         } else {
@@ -296,7 +306,7 @@ public class Game {
             }
         }
 
-        // Column evaluation
+        // Diagonal evaluation
         if (board[0][0] == board[1][1] && board[1][1] == board[2][2]) {
             // I.e.
             // [1, 0, 0]
@@ -362,6 +372,19 @@ public class Game {
      * @param col the tapped column
      */
     public void makeMovement(int row, int col) {
+        // If the user is a server player and it's not his turn, abort
+        if (isServer() && turn != SERVER_PLAYER) return;
+        // If the user is a client player and it's not his turn, abort
+        if (!isServer() && turn != CLIENT_PLAYER) return;
+
+        // If the player is a server player
+        // the next move is the client's
+        if (isServer()) {
+            turn = CLIENT_PLAYER;
+        } else { // otherwise the next move is the server's
+            turn = SERVER_PLAYER;
+        }
+
         if (!evaluateGame()) {
             String message = row + "," + col + "," + player;
             BluetoothConnectionHandler.getInstance().send(message);
