@@ -33,6 +33,4 @@ class BTAdapter(private val deviceList: MutableList<BluetoothDevice>, private va
   }
 
   override fun getItemCount() = deviceList.size
-
-
 }

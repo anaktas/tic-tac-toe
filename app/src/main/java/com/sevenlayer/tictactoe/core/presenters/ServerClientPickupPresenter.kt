@@ -1,8 +1,8 @@
 package com.sevenlayer.tictactoe.core.presenters
 
-import com.sevenlayer.tictactoe.core.connection.BluetoothConnectionHandler
+import com.sevenlayer.tictactoe.core.connection.BTConnection
 import com.sevenlayer.tictactoe.core.contracts.ServerClientPickupContract
-import com.sevenlayer.tictactoe.core.game.Game
+import com.sevenlayer.tictactoe.core.game.GameInstance
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.schedulers.Schedulers
@@ -22,23 +22,23 @@ class ServerClientPickupPresenter(private val view: ServerClientPickupContract.V
 
   override fun continueAsServer() {
     view.startLoading()
-    Game.getInstance().setPlayerType(true)
+    GameInstance.setPlayerType(true)
 
     runBlocking {
       launch {
         compositeDisposable.add(
-            BluetoothConnectionHandler.getInstance()
-                .connectionStatusObservable
+            BTConnection
+                .getConnectionStatusObservable()
                 .observeOn(Schedulers.io())
                 .subscribeOn(AndroidSchedulers.mainThread())
                 .subscribe({ status ->
-                  if (status == BluetoothConnectionHandler.BluetoothConnectionStatus.CONNECTED) {
+                  if (status == BTConnection.BTConnectionStatus.CONNECTED) {
                     view.stopLoading()
                     view.continueToLobby()
                     return@subscribe
                   }
 
-                  if (status == BluetoothConnectionHandler.BluetoothConnectionStatus.FAILED) {
+                  if (status == BTConnection.BTConnectionStatus.FAILED) {
                     view.stopLoading()
                     view.onConnectionFailed()
                   }
@@ -49,14 +49,14 @@ class ServerClientPickupPresenter(private val view: ServerClientPickupContract.V
                 })
         )
 
-        BluetoothConnectionHandler.getInstance().initServer()
+        BTConnection.initServer()
       }
     }
   }
 
   override fun continueAsClient() {
     view.startLoading()
-    Game.getInstance().setPlayerType(false)
+    GameInstance.setPlayerType(false)
     view.stopLoading()
 
     view.continueToDeviceList()

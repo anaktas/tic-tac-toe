@@ -8,7 +8,6 @@ import android.widget.Button
 import android.widget.Toast
 import com.sevenlayer.tictactoe.R
 import com.sevenlayer.tictactoe.core.contracts.ServerClientPickupContract
-import com.sevenlayer.tictactoe.core.game.Game
 import com.sevenlayer.tictactoe.core.presenters.ServerClientPickupPresenter
 
 /**
