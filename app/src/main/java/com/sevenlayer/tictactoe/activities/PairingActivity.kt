@@ -28,6 +28,12 @@ class PairingActivity : AppCompatActivity() {
     }
   }
 
+  override fun onBackPressed() {
+    startActivity(Intent(this, LaunchActivity::class.java))
+    overridePendingTransition(R.anim.fade_in, R.anim.fade_out)
+    finish()
+  }
+
   /**
    * Moves along to the next screen which is the ServerClientPickupActivity.
    */

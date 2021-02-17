@@ -11,4 +11,5 @@
     <string name="continue_txt">Continue</string>
     <string name="continue_as_server">Host the game</string>
     <string name="continue_as_client">Be the guest</string>
+    <string name="select_host">Select the game host</string>
 </resources>

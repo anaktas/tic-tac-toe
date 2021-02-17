@@ -144,15 +144,13 @@ public class BluetoothConnectionHandler {
 
                 if (socket != null) {
                     try {
+                        clientSocket = socket;
                         inputStream = socket.getInputStream();
                         outputStream = socket.getOutputStream();
-                        byte[] buffer = new byte[256];
-                        DataInputStream dataInputStream = new DataInputStream(inputStream);
 
-                        int bytes = dataInputStream.read(buffer);
-                        String message = new String(buffer, 0, bytes);
+                        startListening();
 
-                        messageObservable.onNext(message);
+                        serverSocket.close();
                     } catch (IOException e) {
                         Timber.e(e);
                     }
@@ -195,13 +193,7 @@ public class BluetoothConnectionHandler {
                     inputStream = clientSocket.getInputStream();
                     outputStream = clientSocket.getOutputStream();
 
-                    byte[] buffer = new byte[256];
-                    DataInputStream dataInputStream = new DataInputStream(inputStream);
-
-                    int bytes = dataInputStream.read(buffer);
-                    String message = new String(buffer, 0, bytes);
-
-                    messageObservable.onNext(message);
+                    startListening();
                 }
             } catch (IOException e) {
                 Timber.e(e);
@@ -213,6 +205,28 @@ public class BluetoothConnectionHandler {
                 }
             }
         });
+    }
+
+    public void startListening() {
+        new Thread(() -> {
+            if (inputStream != null) {
+                while (true) {
+                    try {
+                        byte[] buffer = new byte[1024];
+                        DataInputStream dataInputStream = new DataInputStream(inputStream);
+
+                        int bytes = dataInputStream.read(buffer);
+                        String message = new String(buffer, 0, bytes);
+
+                        messageObservable.onNext(message);
+
+                        Thread.sleep(300);
+                    } catch (IOException | InterruptedException e) {
+                        Timber.e(e);
+                    }
+                }
+            }
+        }).start();
     }
 
     /**
@@ -236,6 +250,7 @@ public class BluetoothConnectionHandler {
      */
     public void stopClient() {
         try {
+            if (inputStream != null) inputStream.close();
             if (outputStream != null) {
                 outputStream.flush();
                 outputStream.close();

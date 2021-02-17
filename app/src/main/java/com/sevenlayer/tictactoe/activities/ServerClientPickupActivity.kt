@@ -1,6 +1,7 @@
 package com.sevenlayer.tictactoe.activities
 
 import android.app.ProgressDialog
+import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.Button
@@ -37,12 +38,18 @@ class ServerClientPickupActivity : AppCompatActivity(), ServerClientPickupContra
     }
 
     continueAsClient.setOnClickListener {
-
+      presenter.continueAsClient()
     }
 
     progress = ProgressDialog(this)
     progress.setTitle("Connecting")
     progress.setMessage("Please wait...")
+  }
+
+  override fun onBackPressed() {
+    startActivity(Intent(this, PairingActivity::class.java))
+    overridePendingTransition(R.anim.fade_in, R.anim.fade_out)
+    finish()
   }
 
   override fun onDestroy() {
@@ -73,6 +80,8 @@ class ServerClientPickupActivity : AppCompatActivity(), ServerClientPickupContra
   }
 
   override fun continueToDeviceList() {
-
+    startActivity(Intent(this, DeviceListActivity::class.java))
+    overridePendingTransition(R.anim.fade_in, R.anim.fade_out)
+    finish()
   }
 }
