@@ -2,6 +2,7 @@ package com.sevenlayer.tictactoe.activities
 
 import android.content.Intent
 import android.os.Bundle
+import android.provider.Settings
 import android.widget.Button
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
@@ -15,6 +16,7 @@ import com.sevenlayer.tictactoe.R
 class PairingActivity : AppCompatActivity() {
   private lateinit var message: TextView
   private lateinit var continueButton: Button
+  private lateinit var btSettings: Button
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
@@ -22,9 +24,14 @@ class PairingActivity : AppCompatActivity() {
 
     message = findViewById(R.id.message)
     continueButton = findViewById(R.id.continue_btn)
+    btSettings = findViewById(R.id.bt_settings)
 
     continueButton.setOnClickListener {
       moveAlong()
+    }
+
+    btSettings.setOnClickListener {
+      openBTSettings()
     }
   }
 
@@ -40,5 +47,14 @@ class PairingActivity : AppCompatActivity() {
   private fun moveAlong() {
     startActivity(Intent(this, ServerClientPickupActivity::class.java))
     overridePendingTransition(R.anim.fade_in, R.anim.fade_out)
+  }
+
+  /**
+   * Opens the device's BT settings.
+   */
+  private fun openBTSettings() {
+    val intent = Intent()
+    intent.action = Settings.ACTION_BLUETOOTH_SETTINGS
+    startActivity(intent)
   }
 }

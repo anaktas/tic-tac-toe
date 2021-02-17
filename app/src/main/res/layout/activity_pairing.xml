@@ -24,18 +24,38 @@
         android:lineSpacingExtra="8sp"
         android:textStyle="bold"/>
 
-    <Button
-        android:id="@+id/continue_btn"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/continue_txt"
-        android:layout_marginStart="10dp"
-        android:layout_marginEnd="10dp"
-        android:layout_marginBottom="20dp"
-        android:background="@drawable/round_corner_button"
-        android:layout_alignParentBottom="true"
-        android:textColor="@color/black"
-        android:textSize="18sp"
-        android:fontFamily="@font/montserrat_bold"/>
+        android:orientation="vertical"
+        android:layout_alignParentBottom="true">
+
+        <Button
+            android:id="@+id/bt_settings"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/open_bt_settings"
+            android:layout_marginStart="10dp"
+            android:layout_marginEnd="10dp"
+            android:layout_marginBottom="20dp"
+            android:background="@drawable/round_corner_button"
+            android:textColor="@color/black"
+            android:textSize="18sp"
+            android:fontFamily="@font/montserrat_bold"/>
+
+        <Button
+            android:id="@+id/continue_btn"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/continue_txt"
+            android:layout_marginStart="10dp"
+            android:layout_marginEnd="10dp"
+            android:layout_marginBottom="20dp"
+            android:background="@drawable/round_corner_button"
+            android:textColor="@color/black"
+            android:textSize="18sp"
+            android:fontFamily="@font/montserrat_bold"/>
+
+    </LinearLayout>
 
 </RelativeLayout>

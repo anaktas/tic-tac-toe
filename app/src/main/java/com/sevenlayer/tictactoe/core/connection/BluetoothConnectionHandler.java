@@ -220,6 +220,7 @@ public class BluetoothConnectionHandler {
 
                         messageObservable.onNext(message);
 
+                        // Slowing down the loop
                         Thread.sleep(300);
                     } catch (IOException | InterruptedException e) {
                         Timber.e(e);
