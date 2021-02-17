@@ -140,6 +140,7 @@ public class BluetoothConnectionHandler {
                     }
                 } catch (IOException e) {
                     Timber.e(e);
+                    break;
                 }
 
                 if (socket != null) {
