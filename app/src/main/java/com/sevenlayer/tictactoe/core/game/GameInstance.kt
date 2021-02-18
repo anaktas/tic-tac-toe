@@ -11,6 +11,8 @@ import io.reactivex.subjects.PublishSubject
 import timber.log.Timber
 
 /**
+ * The game instance object.
+ *
  * @author Anastasios Daris (t.daris@7linternational.com)
  */
 object GameInstance {
@@ -37,6 +39,9 @@ object GameInstance {
         board[i][j] = 0
       }
     }
+
+    // The first player is always the server player
+    turn = SERVER_PLAYER
   }
 
   fun getBoardObservable(): Observable<Array<IntArray>> = boardObservable
@@ -61,7 +66,7 @@ object GameInstance {
         .subscribe({ message: String ->
           if (!TextUtils.isEmpty(message)) {
             val entries = message.split(",".toRegex()).toTypedArray()
-            if (entries != null && entries.size > 0) {
+            if (entries != null && entries.isNotEmpty()) {
               val row = entries[0].toInt()
               val col = entries[1].toInt()
               val playerType = entries[1].toInt()
