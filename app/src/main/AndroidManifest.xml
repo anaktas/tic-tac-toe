@@ -18,9 +18,13 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.TicTacToe">
         <activity
-            android:name=".activities.DeviceListActivity"
+            android:name=".activities.LobbyActivity"
             android:screenOrientation="portrait"
             android:theme="@style/Theme.AppCompat.Light.NoActionBar"/>
+        <activity
+            android:name=".activities.DeviceListActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
         <activity
             android:name=".activities.ServerClientPickupActivity"
             android:screenOrientation="portrait"

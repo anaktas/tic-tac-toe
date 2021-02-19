@@ -15,322 +15,370 @@ import java.io.OutputStream
 import java.util.*
 
 /**
- * This οbject is gonna handle the BT connection and the sockets.
+ * This object is gonna handle the BT connection and the sockets.
  *
  * @author Anastasios Daris (t.daris@7linternational.com)
  */
 object BTConnection {
-  /**
-   * The BT service UUID.
-   */
-  private val uuid: UUID = UUID.fromString("00000000-0000-1000-8000-00805F9B34FA")
+    /**
+     * The BT service UUID.
+     */
+    private val uuid: UUID = UUID.fromString("00000000-0000-1000-8000-00805F9B34FA")
 
-  /**
-   * The BT adapter.
-   */
-  private val bluetoothAdapter: BluetoothAdapter? = BluetoothAdapter.getDefaultAdapter()
+    /**
+     * Constant timeout for waiting a client connection.
+     */
+    private const val TIMEOUT: Int = 240
 
-  /**
-   * The message observable for the incoming messages.
-   */
-  private val messageObservable: PublishSubject<String> = PublishSubject.create()
+    /**
+     * The BT adapter.
+     */
+    private val bluetoothAdapter: BluetoothAdapter? = BluetoothAdapter.getDefaultAdapter()
 
-  /**
-   * The BT connection status observable.
-   */
-  private val connectionStatusObservable: PublishSubject<BTConnectionStatus> = PublishSubject.create()
+    /**
+     * The message observable for the incoming messages.
+     */
+    private val messageObservable: PublishSubject<String> = PublishSubject.create()
 
-  /**
-   * The server starting flag.
-   */
-  private var serverStarted: Boolean = false
+    /**
+     * The BT connection status observable.
+     */
+    private val connectionStatusObservable: PublishSubject<BTConnectionStatus> = PublishSubject.create()
 
-  /**
-   * The client starting flag.
-   */
-  private var clientStarted: Boolean = false
+    /**
+     * Client socket connection observable.
+     */
+    private val clientConnectionStatusObservable: PublishSubject<Boolean> = PublishSubject.create()
 
-  /**
-   * The server socket.
-   */
-  private var serverSocket: BluetoothServerSocket? = null
+    /**
+     * The server starting flag.
+     */
+    private var serverStarted: Boolean = false
 
-  /**
-   * The client socket.
-   */
-  private var clientSocket: BluetoothSocket? = null
+    /**
+     * The client starting flag.
+     */
+    private var clientStarted: Boolean = false
 
-  /**
-   * The server BT device object/
-   */
-  private var btDevice: BluetoothDevice? = null
+    /**
+     * The server socket.
+     */
+    private var serverSocket: BluetoothServerSocket? = null
 
-  /**
-   * The incoming {@link InputStream}.
-   */
-  private var inputStream: InputStream? = null
+    /**
+     * The client socket.
+     */
+    private var clientSocket: BluetoothSocket? = null
 
-  /**
-   * The outgoing {@link OutputStream}.
-   */
-  private var outputStream: OutputStream? = null
+    /**
+     * The server BT device object/
+     */
+    private var btDevice: BluetoothDevice? = null
 
-  /**
-   * The client coroutine job.
-   */
-  private var clientJob: Job? = null
+    /**
+     * The incoming {@link InputStream}.
+     */
+    private var inputStream: InputStream? = null
 
-  /**
-   * The server coroutine job.
-   */
-  private var serverJob: Job? = null
+    /**
+     * The outgoing {@link OutputStream}.
+     */
+    private var outputStream: OutputStream? = null
 
-  /**
-   * The listening coroutin job.
-   */
-  private var listeningJob: Job? = null
+    /**
+     * The client coroutine job.
+     */
+    private var clientJob: Job? = null
 
-  /**
-   * Returns the message observable.
-   */
-  fun getMessageObservable(): Observable<String> = messageObservable
+    /**
+     * The server coroutine job.
+     */
+    private var serverJob: Job? = null
 
-  /**
-   * Returns the connection status observable.
-   */
-  fun getConnectionStatusObservable(): Observable<BTConnectionStatus> = connectionStatusObservable
+    /**
+     * The listening coroutin job.
+     */
+    private var listeningJob: Job? = null
 
-  /**
-   * Set's the server device.
-   */
-  fun setDevice(device: BluetoothDevice) {
-    btDevice = device
-  }
+    /**
+     * Returns the message observable.
+     */
+    fun getMessageObservable(): Observable<String> = messageObservable
 
-  /**
-   * Initializes the BT server and creates the corresponding socket.
-   */
-  fun initServer() {
-    var tmp: BluetoothServerSocket? = null
+    /**
+     * Returns the connection status observable.
+     */
+    fun getConnectionStatusObservable(): Observable<BTConnectionStatus> = connectionStatusObservable
 
-    try {
-      tmp = bluetoothAdapter?.listenUsingRfcommWithServiceRecord("TicTacToeServer", uuid)
-      connectionStatusObservable.onNext(BTConnectionStatus.CONNECTED)
-    } catch (e: IOException) {
-      connectionStatusObservable.onNext(BTConnectionStatus.FAILED)
-      Timber.e(e)
+    /**
+     * Returns the client socket connection status observable.
+     */
+    fun getClientConnectionObservable(): Observable<Boolean> = clientConnectionStatusObservable
+
+    /**
+     * Set's the server device.
+     */
+    fun setDevice(device: BluetoothDevice) {
+        btDevice = device
     }
 
-    serverSocket = tmp
-  }
+    /**
+     * Initializes the BT server and creates the corresponding socket.
+     */
+    fun initServer() {
+        CoroutineScope(Dispatchers.IO).launch {
+            Timber.d("initServer()")
+            var tmp: BluetoothServerSocket? = null
 
-  /**
-   * Starts the BT server which is listening for incoming client sockets.
-   */
-  fun startServer() {
-    if (serverStarted) return
+            try {
+                Timber.d("Acquiring the BT server socket")
+                tmp = bluetoothAdapter?.listenUsingRfcommWithServiceRecord("TicTacToeServer", uuid)
+                // looks weird, but it works
+                delay(1000)
+                connectionStatusObservable.onNext(BTConnectionStatus.CONNECTED)
+            } catch (e: IOException) {
+                delay(1000)
+                connectionStatusObservable.onNext(BTConnectionStatus.FAILED)
+                Timber.d(e)
+                Timber.e(e)
+            }
 
-    serverStarted = true
-
-    serverJob?.cancel()
-    serverJob = CoroutineScope(Dispatchers.IO).launch {
-      var socket: BluetoothSocket? = null
-
-      while (true) {
-        try {
-          if (serverSocket != null) {
-            socket = serverSocket!!.accept()
-          } else {
-            serverStarted = false
-          }
-        } catch (e: IOException) {
-          serverStarted = false
-          Timber.e(e)
-          break
-        }
-
-        if (socket != null) {
-          try {
-            clientSocket = socket
-            inputStream = socket.inputStream
-            outputStream = socket.outputStream
-
-            startListening()
-
-            serverSocket?.close()
-          } catch (e: IOException) {
-            serverStarted = false
-            Timber.e(e)
-          }
-
-          break
-        }
-      }
+            serverSocket = tmp
+        }.start()
     }
 
-    serverJob?.start()
-  }
+    /**
+     * Starts the BT server which is listening for incoming client sockets.
+     */
+    fun startServer() {
+        Timber.d("startServer()")
+        if (serverStarted) return
 
-  /**
-   * Performs the client socket connection.
-   */
-  fun startClient() {
-    if (clientStarted) return
+        serverStarted = true
 
-    clientStarted = true
-    var tmp: BluetoothSocket? = null
+        serverJob?.cancel()
+        serverJob = CoroutineScope(Dispatchers.IO).launch {
+            var socket: BluetoothSocket? = null
+            var timeout = 0
 
-    try {
-      tmp = btDevice?.createRfcommSocketToServiceRecord(uuid)
-      connectionStatusObservable.onNext(BTConnectionStatus.CONNECTED)
-    } catch (e: IOException) {
-      clientStarted = false
-      connectionStatusObservable.onNext(BTConnectionStatus.FAILED)
-      Timber.e(e)
+            while (true) {
+                Timber.d("Looping: $timeout")
+                // The host will not wait indefinitely, but instead he wil wait up to two minutes
+                if (timeout == TIMEOUT) {
+                    Timber.d("Break the loop due to timeout")
+                    delay(1000)
+                    clientConnectionStatusObservable.onNext(false)
+                    break
+                }
+
+                try {
+                    if (serverSocket != null) {
+                        Timber.d("Accepting the client socket")
+                        socket = serverSocket!!.accept()
+                        Timber.d("Move over")
+                    } else {
+                        serverStarted = false
+                    }
+                } catch (e: IOException) {
+                    serverStarted = false
+                    Timber.e(e)
+                    Timber.d(e)
+                    clientConnectionStatusObservable.onNext(false)
+                    break
+                }
+
+                if (socket != null) {
+                    Timber.d("Client socket acquired")
+                    try {
+                        clientSocket = socket
+                        inputStream = socket.inputStream
+                        outputStream = socket.outputStream
+
+                        startListening()
+
+                        serverSocket?.close()
+                    } catch (e: IOException) {
+                        serverStarted = false
+                        Timber.e(e)
+                    }
+
+                    clientConnectionStatusObservable.onNext(true)
+
+                    break
+                }
+
+                timeout++
+                delay(500)
+            }
+        }
+
+        serverJob?.start()
     }
 
-    clientSocket = tmp
+    /**
+     * Performs the client socket connection.
+     */
+    fun startClient() {
+        if (clientStarted) return
 
-    clientJob?.cancel()
-    clientJob = CoroutineScope(Dispatchers.IO).launch {
-      bluetoothAdapter?.cancelDiscovery()
+        clientStarted = true
+        var tmp: BluetoothSocket? = null
 
-      try {
-        if (clientSocket != null) {
-          clientSocket?.let {
-            it.connect()
+        clientJob?.cancel()
+        clientJob = CoroutineScope(Dispatchers.IO).launch {
+            try {
+                tmp = btDevice?.createRfcommSocketToServiceRecord(uuid)
+                delay(1000)
+                connectionStatusObservable.onNext(BTConnectionStatus.CONNECTED)
+            } catch (e: IOException) {
+                clientStarted = false
+                delay(1000)
+                connectionStatusObservable.onNext(BTConnectionStatus.FAILED)
+                Timber.e(e)
+            }
 
-            inputStream = it.inputStream
-            outputStream = it.outputStream
+            clientSocket = tmp
 
-            startListening()
-          }
-        } else {
-          clientStarted = false
+
+            bluetoothAdapter?.cancelDiscovery()
+
+            try {
+                if (clientSocket != null) {
+                    clientSocket?.let {
+                        it.connect()
+
+                        inputStream = it.inputStream
+                        outputStream = it.outputStream
+
+                        startListening()
+                    }
+                } else {
+                    clientStarted = false
+                }
+            } catch (e: IOException) {
+                clientStarted = false
+                Timber.e(e)
+
+                try {
+                    clientSocket?.close()
+                } catch (exc: IOException) {
+                    Timber.e(e)
+                }
+            }
         }
-      } catch (e: IOException) {
+
+        clientJob?.start()
+    }
+
+    /**
+     * Starts listening for incoming messages.
+     */
+    private fun startListening() {
+        listeningJob?.cancel()
+        listeningJob = CoroutineScope(Dispatchers.IO).launch {
+            inputStream?.let {
+                while (true) {
+                    try {
+                        val buffer = ByteArray(1024)
+                        val dataInputStream = DataInputStream(it)
+
+                        val bytes = dataInputStream.read(buffer)
+                        val message = String(buffer, 0, bytes)
+
+                        delay(3000)
+                        messageObservable.onNext(message)
+
+                        delay(300)
+                    } catch (e: IOException) {
+                        Timber.e(e)
+                    }
+                }
+            }
+        }
+
+        listeningJob?.start()
+    }
+
+    /**
+     * Stops the server socket and streams.
+     */
+    private fun stopServer() {
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                inputStream?.close()
+
+                outputStream?.let {
+                    it.flush()
+                    it.close()
+                }
+
+                serverSocket?.close()
+            } catch (e: IOException) {
+                Timber.e(e)
+            }
+        }.start()
+    }
+
+    /**
+     * Stops the client socket and streams.
+     */
+    private fun stopClient() {
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                inputStream?.close()
+
+                outputStream?.let {
+                    it.flush()
+                    it.close()
+                }
+
+                clientSocket?.close()
+            } catch (e: IOException) {
+                Timber.e(e)
+            }
+        }.start()
+    }
+
+    /**
+     * Sends a message to the BT device.
+     */
+    fun send(message: String?) {
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                message?.let {
+                    outputStream?.write(it.toByteArray())
+                }
+            } catch (e: IOException) {
+                Timber.e(e)
+            }
+        }.start()
+    }
+
+    /**
+     * Clears the instance.
+     */
+    fun die() {
+        stopServer()
+        stopClient()
+        serverStarted = false
         clientStarted = false
-        Timber.e(e)
 
-        try {
-          clientSocket?.close()
-        } catch (exc: IOException) {
-          Timber.e(e)
-        }
-      }
+        serverJob?.cancel()
+        clientJob?.cancel()
+        listeningJob?.cancel()
+
+        serverSocket = null
+        clientSocket = null
+        btDevice = null
+        inputStream = null
+        outputStream = null
+        clientJob = null
+        serverJob = null
+        listeningJob = null
     }
 
-    clientJob?.start()
-  }
-
-  /**
-   * Starts listening for incoming messages.
-   */
-  private fun startListening() {
-    listeningJob?.cancel()
-    listeningJob = CoroutineScope(Dispatchers.IO).launch {
-      inputStream?.let {
-        while (true) {
-          try {
-            val buffer = ByteArray(1024)
-            val dataInputStream = DataInputStream(it)
-
-            val bytes = dataInputStream.read(buffer)
-            val message = String(buffer, 0, bytes)
-
-            messageObservable.onNext(message)
-
-            delay(300)
-          } catch (e: IOException) {
-            Timber.e(e)
-          }
-        }
-      }
+    enum class BTConnectionStatus {
+        CONNECTED,
+        FAILED
     }
-
-    listeningJob?.start()
-  }
-
-  /**
-   * Stops the server socket and streams.
-   */
-  private fun stopServer() {
-    CoroutineScope(Dispatchers.IO).launch {
-      try {
-        inputStream?.close()
-
-        outputStream?.let {
-          it.flush()
-          it.close()
-        }
-
-        serverSocket?.close()
-      } catch (e: IOException) {
-        Timber.e(e)
-      }
-    }.start()
-  }
-
-  /**
-   * Stops the client socket and streams.
-   */
-  private fun stopClient() {
-    CoroutineScope(Dispatchers.IO).launch {
-      try {
-        inputStream?.close()
-
-        outputStream?.let {
-          it.flush()
-          it.close()
-        }
-
-        clientSocket?.close()
-      } catch (e: IOException) {
-        Timber.e(e)
-      }
-    }.start()
-  }
-
-  /**
-   * Sends a message to the BT device.
-   */
-  fun send(message: String?) {
-    CoroutineScope(Dispatchers.IO).launch {
-      try {
-        message?.let {
-          outputStream?.write(it.toByteArray())
-        }
-      } catch (e: IOException) {
-        Timber.e(e)
-      }
-    }.start()
-  }
-
-  /**
-   * Clears the instance.
-   */
-  fun die() {
-    stopServer()
-    stopClient()
-    serverStarted = false
-    clientStarted = false
-
-    serverJob?.cancel()
-    clientJob?.cancel()
-    listeningJob?.cancel()
-
-    serverSocket = null
-    clientSocket = null
-    btDevice = null
-    inputStream = null
-    outputStream = null
-    clientJob = null
-    serverJob = null
-    listeningJob = null
-  }
-
-  enum class BTConnectionStatus {
-    CONNECTED,
-    FAILED
-  }
 }

@@ -14,51 +14,58 @@ import timber.log.Timber
  * @author Anastasios Daris (t.daris@7linternational.com)
  */
 class ServerClientPickupPresenter(private val view: ServerClientPickupContract.View): ServerClientPickupContract.Presenter {
-  private val compositeDisposable: CompositeDisposable = CompositeDisposable()
+    private val compositeDisposable: CompositeDisposable = CompositeDisposable()
 
-  override fun onDestroy() {
-    compositeDisposable.clear()
-  }
-
-  override fun continueAsServer() {
-    view.startLoading()
-    GameInstance.setPlayerType(true)
-
-    runBlocking {
-      launch {
-        compositeDisposable.add(
-            BTConnection
-                .getConnectionStatusObservable()
-                .observeOn(Schedulers.io())
-                .subscribeOn(AndroidSchedulers.mainThread())
-                .subscribe({ status ->
-                  if (status == BTConnection.BTConnectionStatus.CONNECTED) {
-                    view.stopLoading()
-                    view.continueToLobby()
-                    return@subscribe
-                  }
-
-                  if (status == BTConnection.BTConnectionStatus.FAILED) {
-                    view.stopLoading()
-                    view.onConnectionFailed()
-                  }
-                }, {t ->
-                  Timber.e(t)
-                  view.stopLoading()
-                  view.onConnectionFailed()
-                })
-        )
-
-        BTConnection.initServer()
-      }
+    override fun onDestroy() {
+        compositeDisposable.clear()
     }
-  }
 
-  override fun continueAsClient() {
-    view.startLoading()
-    GameInstance.setPlayerType(false)
-    view.stopLoading()
+    override fun continueAsServer() {
+        Timber.d("continueAsServer()")
+        view.startLoading()
+        GameInstance.setPlayerType(true)
 
-    view.continueToDeviceList()
-  }
+        runBlocking {
+            launch {
+                Timber.d("Launching the blocking coroutine")
+
+                compositeDisposable.add(
+                    BTConnection
+                        .getConnectionStatusObservable()
+                        .observeOn(Schedulers.io())
+                        .subscribeOn(AndroidSchedulers.mainThread())
+                        .doOnSubscribe {
+                            Timber.d("Initializing server")
+                            BTConnection.initServer()
+                        }
+                        .subscribe({ status ->
+                            Timber.d("Received status: $status")
+                            view.stopLoading()
+
+                            if (status == BTConnection.BTConnectionStatus.CONNECTED) {
+                                view.continueToLobby()
+                            }
+
+                            if (status == BTConnection.BTConnectionStatus.FAILED) {
+                                view.onConnectionFailed()
+                            }
+                        }, { t ->
+                            Timber.e(t)
+                            view.stopLoading()
+                            view.onConnectionFailed()
+                        })
+                )
+
+                //BTConnection.initServer()
+            }
+        }
+    }
+
+    override fun continueAsClient() {
+        view.startLoading()
+        GameInstance.setPlayerType(false)
+        view.stopLoading()
+
+        view.continueToDeviceList()
+    }
 }

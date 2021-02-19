@@ -25,103 +25,115 @@ import timber.log.Timber
  * @author Anastasios Daris <t.daris@7linternational.com>
  */
 class LaunchActivity : AppCompatActivity(), LaunchContract.View {
-  private val PERMISSION: Int = 4556
-  private val REQUEST_ENABLE_BT: Int = 4557
-  private lateinit var presenter: LaunchContract.Presenter
-  private lateinit var message: TextView
-  private lateinit var continueButton: Button
+    private val PERMISSION: Int = 4556
+    private val REQUEST_ENABLE_BT: Int = 4557
+    private lateinit var presenter: LaunchContract.Presenter
+    private lateinit var message: TextView
+    private lateinit var continueButton: Button
 
-  override fun onCreate(savedInstanceState: Bundle?) {
-    super.onCreate(savedInstanceState)
-    setContentView(R.layout.activity_launch)
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_launch)
 
-    setPresenter(LaunchPresenter(this))
+        setPresenter(LaunchPresenter(this))
 
-    message = findViewById(R.id.message)
-    continueButton = findViewById(R.id.continue_btn)
-    continueButton.visibility = View.GONE
+        message = findViewById(R.id.message)
+        continueButton = findViewById(R.id.continue_btn)
+        continueButton.visibility = View.GONE
 
-    continueButton.setOnClickListener {
-      presenter.enableBT()
-    }
-  }
-
-  override fun onResume() {
-    checkPermissions()
-    super.onResume()
-  }
-
-  override fun onDestroy() {
-    presenter.onDestroy()
-    super.onDestroy()
-  }
-
-  override fun setPresenter(presenter: LaunchContract.Presenter) {
-    this.presenter = presenter
-  }
-
-  override fun onBTNotSupported() {
-    Toast.makeText(this, "We are sorry, but your device does not support bluetooth.", Toast.LENGTH_LONG).show()
-  }
-
-  override fun onEnableBT(intent: Intent) {
-    Timber.d("onEnableBT()")
-    startActivityForResult(intent, REQUEST_ENABLE_BT)
-  }
-
-  override fun provideContext(): Context = this
-
-  override fun moveAlong() {
-    Timber.d("moveAlong()")
-    val discoverableIntent: Intent = Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE).apply {
-      putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, 300)
+        continueButton.setOnClickListener {
+            presenter.enableBT()
+        }
     }
 
-    startActivity(discoverableIntent)
+    override fun onResume() {
+        checkPermissions()
+        super.onResume()
+    }
 
-    startActivity(Intent(this, PairingActivity::class.java))
-    overridePendingTransition(R.anim.fade_in, R.anim.fade_out)
-  }
+    override fun onDestroy() {
+        presenter.onDestroy()
+        super.onDestroy()
+    }
 
-  override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
-    when (requestCode) {
-      PERMISSION -> {
-        if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-          continueButton.visibility = View.VISIBLE
-        } else {
-          continueButton.visibility = View.GONE
-          Toast.makeText(this, "Please go to the app settings and allow the necessary permissions", Toast.LENGTH_LONG).show()
+    override fun setPresenter(presenter: LaunchContract.Presenter) {
+        this.presenter = presenter
+    }
+
+    override fun onBTNotSupported() {
+        Toast.makeText(this, "We are sorry, but your device does not support bluetooth.", Toast.LENGTH_LONG).show()
+    }
+
+    override fun onEnableBT(intent: Intent) {
+        Timber.d("onEnableBT()")
+        startActivityForResult(intent, REQUEST_ENABLE_BT)
+    }
+
+    override fun provideContext(): Context = this
+
+    override fun moveAlong() {
+        Timber.d("moveAlong()")
+        val discoverableIntent: Intent = Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE).apply {
+            putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, 300)
         }
 
-        return
-      }
+        startActivity(discoverableIntent)
+
+        startActivity(Intent(this, PairingActivity::class.java))
+        overridePendingTransition(R.anim.fade_in, R.anim.fade_out)
     }
-  }
 
-  /**
-   * Checks if the app has the necessary permissions granted.
-   */
-  private fun checkPermissions() {
-    Timber.d("checkPermissions()")
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-      val isBackgroundLocationNotGranted = ContextCompat.checkSelfPermission(baseContext, Manifest.permission.ACCESS_BACKGROUND_LOCATION) != PackageManager.PERMISSION_GRANTED
-      val isFineLocationNotGranted = ContextCompat.checkSelfPermission(baseContext, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
-      val isCoarseLocationNotGranted = ContextCompat.checkSelfPermission(baseContext, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        when (requestCode) {
+            PERMISSION -> {
+                if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    continueButton.visibility = View.VISIBLE
+                } else {
+                    continueButton.visibility = View.GONE
+                    Toast.makeText(this, "Please go to the app settings and allow the necessary permissions", Toast.LENGTH_LONG).show()
+                }
 
-      val arePermissionsNotGranted = isBackgroundLocationNotGranted && isFineLocationNotGranted && isCoarseLocationNotGranted
+                return
+            }
+        }
+    }
 
-      if (arePermissionsNotGranted) {
-        ActivityCompat.requestPermissions(
-            this,
+    /**
+     * Checks if the app has the necessary permissions granted.
+     */
+    private fun checkPermissions() {
+        Timber.d("checkPermissions()")
+
+        val isFineLocationNotGranted = ContextCompat.checkSelfPermission(baseContext, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
+        val isCoarseLocationNotGranted = ContextCompat.checkSelfPermission(baseContext, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED
+
+        val arePermissionsNotGranted = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            val isBackgroundLocationNotGranted = ContextCompat.checkSelfPermission(baseContext, Manifest.permission.ACCESS_BACKGROUND_LOCATION) != PackageManager.PERMISSION_GRANTED
+            isBackgroundLocationNotGranted && isFineLocationNotGranted && isCoarseLocationNotGranted
+        } else {
+            isFineLocationNotGranted && isCoarseLocationNotGranted
+        }
+
+        val permissionArray = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             arrayOf(
                 Manifest.permission.ACCESS_BACKGROUND_LOCATION,
                 Manifest.permission.ACCESS_FINE_LOCATION,
                 Manifest.permission.ACCESS_COARSE_LOCATION
-            ),
-            PERMISSION)
-      } else {
-        continueButton.visibility = View.VISIBLE
-      }
+            )
+        } else {
+            arrayOf(
+                Manifest.permission.ACCESS_FINE_LOCATION,
+                Manifest.permission.ACCESS_COARSE_LOCATION
+            )
+        }
+
+        if (arePermissionsNotGranted) {
+            ActivityCompat.requestPermissions(
+                this,
+                permissionArray,
+                PERMISSION)
+        } else {
+            continueButton.visibility = View.VISIBLE
+        }
     }
-  }
 }
