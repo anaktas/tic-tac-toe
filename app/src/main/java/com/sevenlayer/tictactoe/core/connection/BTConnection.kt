@@ -285,7 +285,7 @@ object BTConnection {
                         val bytes = dataInputStream.read(buffer)
                         val message = String(buffer, 0, bytes)
 
-                        delay(3000)
+                        delay(300)
                         messageObservable.onNext(message)
 
                         delay(300)
