@@ -10,4 +10,8 @@
     <string name="select_host">Select the game host</string>
     <string name="open_bt_settings">Open Bluetooth Settings</string>
     <string name="game_instruction">One of you has to be the host of the game and the other one the guest. Please choose one option (you should not choose the same option).</string>
+    <string name="waiting">Waiting…</string>
+    <string name="waiting_host">Waiting host to accept the join request…</string>
+    <string name="waiting_guest">Waiting guest to join the game…</string>
+    <string name="continue_playing">You can play the game now! Enjoy!</string>
 </resources>
