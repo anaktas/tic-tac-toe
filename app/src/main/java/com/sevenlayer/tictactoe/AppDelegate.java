@@ -36,6 +36,8 @@ public class AppDelegate extends MultiDexApplication implements Application.Acti
     public void onCreate() {
         sInstance = this;
 
+        Timber.plant(new Timber.DebugTree());
+
         super.onCreate();
     }
 

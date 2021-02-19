@@ -14,47 +14,47 @@ import com.sevenlayer.tictactoe.R
  * @author Anastasios Daris <t.daris@7linternational.com>
  */
 class PairingActivity : AppCompatActivity() {
-  private lateinit var message: TextView
-  private lateinit var continueButton: Button
-  private lateinit var btSettings: Button
+    private lateinit var message: TextView
+    private lateinit var continueButton: Button
+    private lateinit var btSettings: Button
 
-  override fun onCreate(savedInstanceState: Bundle?) {
-    super.onCreate(savedInstanceState)
-    setContentView(R.layout.activity_pairing)
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_pairing)
 
-    message = findViewById(R.id.message)
-    continueButton = findViewById(R.id.continue_btn)
-    btSettings = findViewById(R.id.bt_settings)
+        message = findViewById(R.id.message)
+        continueButton = findViewById(R.id.continue_btn)
+        btSettings = findViewById(R.id.bt_settings)
 
-    continueButton.setOnClickListener {
-      moveAlong()
+        continueButton.setOnClickListener {
+            moveAlong()
+        }
+
+        btSettings.setOnClickListener {
+            openBTSettings()
+        }
     }
 
-    btSettings.setOnClickListener {
-      openBTSettings()
+    override fun onBackPressed() {
+        startActivity(Intent(this, LaunchActivity::class.java))
+        overridePendingTransition(R.anim.fade_in, R.anim.fade_out)
+        finish()
     }
-  }
 
-  override fun onBackPressed() {
-    startActivity(Intent(this, LaunchActivity::class.java))
-    overridePendingTransition(R.anim.fade_in, R.anim.fade_out)
-    finish()
-  }
+    /**
+     * Moves along to the next screen which is the ServerClientPickupActivity.
+     */
+    private fun moveAlong() {
+        startActivity(Intent(this, ServerClientPickupActivity::class.java))
+        overridePendingTransition(R.anim.fade_in, R.anim.fade_out)
+    }
 
-  /**
-   * Moves along to the next screen which is the ServerClientPickupActivity.
-   */
-  private fun moveAlong() {
-    startActivity(Intent(this, ServerClientPickupActivity::class.java))
-    overridePendingTransition(R.anim.fade_in, R.anim.fade_out)
-  }
-
-  /**
-   * Opens the device's BT settings.
-   */
-  private fun openBTSettings() {
-    val intent = Intent()
-    intent.action = Settings.ACTION_BLUETOOTH_SETTINGS
-    startActivity(intent)
-  }
+    /**
+     * Opens the device's BT settings.
+     */
+    private fun openBTSettings() {
+        val intent = Intent()
+        intent.action = Settings.ACTION_BLUETOOTH_SETTINGS
+        startActivity(intent)
+    }
 }
