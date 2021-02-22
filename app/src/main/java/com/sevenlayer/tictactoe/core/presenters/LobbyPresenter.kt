@@ -23,6 +23,8 @@ class LobbyPresenter(private val view: LobbyContract.View) : LobbyContract.Prese
   override fun startConnection() {
       view.startLoading()
 
+      GameInstance.startListening()
+
       if (GameInstance.isServer()) {
           startListeningForServerConnectionStatus()
           BTConnection.startServer()

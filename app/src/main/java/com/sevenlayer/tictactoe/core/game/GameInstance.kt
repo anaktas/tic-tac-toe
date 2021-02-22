@@ -128,6 +128,7 @@ object GameInstance {
             .subscribeOn(AndroidSchedulers.mainThread())
             .subscribe({ message: String ->
                 if (!TextUtils.isEmpty(message)) {
+                    Timber.d("Message: $message")
                     val entries = message.split(",".toRegex()).toTypedArray()
                     if (entries != null && entries.isNotEmpty()) {
                         val row = entries[0].toInt()
@@ -136,11 +137,12 @@ object GameInstance {
 
                         // If the server player played, then it's the
                         // clients turn
-                        turn = if (playerType == SERVER_PLAYER) {
+                        turn = if (turn == SERVER_PLAYER) {
                             CLIENT_PLAYER
                         } else { // otherwise it's the servers turn.
                             SERVER_PLAYER
                         }
+
                         updateBoard(row, col, playerType)
                     } else {
                         // The server had send a reset message
@@ -160,6 +162,7 @@ object GameInstance {
             board[row][col] = CLIENT_MARKER
         }
 
+        printBoard()
         boardObservable.onNext(board)
         evaluateGame()
     }
@@ -181,6 +184,8 @@ object GameInstance {
                     clientScore++
                 }
                 winnerObservable.onNext(player)
+                clearBoard()
+                boardObservable.onNext(board)
                 return true
             }
         }
@@ -197,6 +202,8 @@ object GameInstance {
                     clientScore++
                 }
                 winnerObservable.onNext(player)
+                clearBoard()
+                boardObservable.onNext(board)
                 return true
             }
         }
@@ -213,6 +220,8 @@ object GameInstance {
                     clientScore++
                 }
                 winnerObservable.onNext(player)
+                clearBoard()
+                boardObservable.onNext(board)
                 return true
             }
         }
@@ -230,6 +239,8 @@ object GameInstance {
                     clientScore++
                 }
                 winnerObservable.onNext(player)
+                clearBoard()
+                boardObservable.onNext(board)
                 return true
             }
         }
@@ -246,6 +257,8 @@ object GameInstance {
                     clientScore++
                 }
                 winnerObservable.onNext(player)
+                clearBoard()
+                boardObservable.onNext(board)
                 return true
             }
         }
@@ -262,6 +275,8 @@ object GameInstance {
                     clientScore++
                 }
                 winnerObservable.onNext(player)
+                clearBoard()
+                boardObservable.onNext(board)
                 return true
             }
         }
@@ -279,6 +294,8 @@ object GameInstance {
                     clientScore++
                 }
                 winnerObservable.onNext(player)
+                clearBoard()
+                boardObservable.onNext(board)
                 return true
             }
         }
@@ -296,6 +313,8 @@ object GameInstance {
                     clientScore++
                 }
                 winnerObservable.onNext(player)
+                clearBoard()
+                boardObservable.onNext(board)
                 return true
             }
         }
@@ -307,13 +326,25 @@ object GameInstance {
      * Makes a movement and sends the move to the other side.
      */
     fun makeMovement(row: Int, col: Int) {
+        Timber.d("Movement: $row, $col, $player")
         if (isServer() && turn != SERVER_PLAYER) return
         if (!isServer() && turn != CLIENT_PLAYER) return
+
+        // Just a precaution measure in order to avoid
+        // an attempt to change a tile which is already
+        // filled.
+        if (board[row][col] != 0) return
 
         turn = if (isServer()) {
             CLIENT_PLAYER
         } else {
             SERVER_PLAYER
+        }
+
+        board[row][col] = if (isServer()) {
+            SERVER_MARKER
+        } else {
+            CLIENT_MARKER
         }
 
         if (!evaluateGame()) {
@@ -326,6 +357,16 @@ object GameInstance {
      * Returns true if the current player is a server player.
      */
     fun isServer(): Boolean = (player == SERVER_PLAYER)
+
+    fun canMove(row: Int, col: Int): Boolean {
+        val boardValue = board[row][col]
+        if (isServer() && turn != SERVER_PLAYER) return false
+        if (!isServer() && turn != CLIENT_PLAYER) return false
+
+        if (boardValue != 0) return false
+
+        return true
+    }
 
     fun clearBoard() {
         for (i in 0..2) {
@@ -363,5 +404,14 @@ object GameInstance {
      */
     private fun addDisposable(disposable: Disposable) {
         compositeDisposable.add(disposable)
+    }
+
+    private fun printBoard() {
+        for (i in 0..2) {
+            for (j in 0..2) {
+                val boarValue = board[i][j]
+                Timber.d("board[$i][$j] = $boarValue")
+            }
+        }
     }
 }
