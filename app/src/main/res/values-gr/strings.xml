@@ -15,4 +15,7 @@
     <string name="waiting_guest">Περιμένετε τον φιλοξενούμενο να μπει στο παιχίνι…</string>
     <string name="continue_playing">Μπορείτε να παίξετε! Πατήστε συνέχεια.</string>
     <string name="score">SCORE</string>
+    <string name="connecting">Σύνδεση</string>
+    <string name="please_wait">Παρακαλώ περιμένετε…</string>
+    <string name="bt_connetion_failure">Κάτι πήγε στραβά κατά την σύνδεση του bluetooth.</string>
 </resources>

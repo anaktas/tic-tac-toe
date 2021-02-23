@@ -15,4 +15,7 @@
     <string name="waiting_guest">Waiting guest to join the game…</string>
     <string name="continue_playing">You can play the game now! Enjoy!</string>
     <string name="score">SCORE</string>
+    <string name="connecting">Connecting</string>
+    <string name="please_wait">Please wait…</string>
+    <string name="bt_connetion_failure">Something went wrong while trying to establish a BT connection.</string>
 </resources>

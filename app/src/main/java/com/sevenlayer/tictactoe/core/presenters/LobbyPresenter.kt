@@ -1,5 +1,8 @@
 package com.sevenlayer.tictactoe.core.presenters
 
+import android.content.Intent
+import com.sevenlayer.tictactoe.R
+import com.sevenlayer.tictactoe.activities.BoardActivity
 import com.sevenlayer.tictactoe.core.connection.BTConnection
 import com.sevenlayer.tictactoe.core.contracts.LobbyContract
 import com.sevenlayer.tictactoe.core.game.GameInstance
@@ -13,15 +16,16 @@ import timber.log.Timber
 /**
  * @author Anastasios Daris (t.daris@7linternational.com)
  */
-class LobbyPresenter(private val view: LobbyContract.View) : LobbyContract.Presenter {
+class LobbyPresenter(private var view: LobbyContract.View?) : LobbyContract.Presenter {
   private val compositeDisposable: CompositeDisposable = CompositeDisposable()
 
   override fun onDestroy() {
       compositeDisposable.clear()
+      view = null
   }
 
   override fun startConnection() {
-      view.startLoading()
+      view?.startLoading()
 
       GameInstance.startListening()
 
@@ -34,7 +38,15 @@ class LobbyPresenter(private val view: LobbyContract.View) : LobbyContract.Prese
       }
   }
 
-  private fun startListeningForClientConnectionStatus() {
+    override fun moveToBoardScreen() {
+        view?.let {
+            it.provideContext().startActivity(Intent(it.provideContext(), BoardActivity::class.java))
+            it.provideActivity().overridePendingTransition(R.anim.fade_in, R.anim.fade_out)
+            it.provideActivity().finish()
+        }
+    }
+
+    private fun startListeningForClientConnectionStatus() {
       runBlocking {
           launch {
               compositeDisposable.add(
@@ -43,17 +55,17 @@ class LobbyPresenter(private val view: LobbyContract.View) : LobbyContract.Prese
                       .observeOn(Schedulers.io())
                       .subscribeOn(AndroidSchedulers.mainThread())
                       .subscribe({ state ->
-                          view.stopLoading()
+                          view?.stopLoading()
 
                           if (state == BTConnection.BTConnectionStatus.CONNECTED) {
-                              view.onConnected()
+                              view?.onConnected()
                           } else {
-                              view.onFailure("Failed to connect")
+                              view?.onFailure("Failed to connect")
                           }
                       }, { t ->
                           Timber.e(t)
-                          view.stopLoading()
-                          view.onFailure(t.message)
+                          view?.stopLoading()
+                          view?.onFailure(t.message)
                       })
               )
           }
@@ -69,17 +81,17 @@ class LobbyPresenter(private val view: LobbyContract.View) : LobbyContract.Prese
                       .observeOn(Schedulers.io())
                       .subscribeOn(AndroidSchedulers.mainThread())
                       .subscribe({ clientConnected ->
-                          view.stopLoading()
+                          view?.stopLoading()
 
                           if (clientConnected) {
-                              view.onConnected()
+                              view?.onConnected()
                           } else {
-                              view.onFailure("A client was not connected at reasonable time.")
+                              view?.onFailure("A client was not connected at reasonable time.")
                           }
                       }, { t ->
                           Timber.e(t)
-                          view.stopLoading()
-                          view.onFailure(t.message)
+                          view?.stopLoading()
+                          view?.onFailure(t.message)
                       })
               )
           }

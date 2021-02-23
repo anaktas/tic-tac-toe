@@ -1,6 +1,8 @@
 package com.sevenlayer.tictactoe.activities
 
+import android.app.Activity
 import android.bluetooth.BluetoothDevice
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
@@ -57,7 +59,7 @@ class DeviceListActivity : AppCompatActivity(), DeviceListContract.View {
             list.invalidate()
 
             adapter = BTAdapter(deviceList) { device ->
-                setDeviceAndMoveAlong(device)
+                presenter.setDeviceAndMoveAlong(device)
             }
 
             list.adapter = adapter
@@ -66,15 +68,7 @@ class DeviceListActivity : AppCompatActivity(), DeviceListContract.View {
         }
     }
 
-    /**
-     * Sets the server BT device in the connection instance and moves
-     * along to the lobby screen.
-     */
-    private fun setDeviceAndMoveAlong(device: BluetoothDevice) {
-        BTConnection.setDevice(device)
+    override fun provideContext(): Context = this
 
-        startActivity(Intent(this, LobbyActivity::class.java))
-        overridePendingTransition(R.anim.fade_in, R.anim.fade_out)
-        finish()
-    }
+    override fun provideActivity(): Activity = this
 }
