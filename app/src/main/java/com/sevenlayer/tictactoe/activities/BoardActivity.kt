@@ -2,6 +2,8 @@ package com.sevenlayer.tictactoe.activities
 
 import android.content.Intent
 import android.os.Bundle
+import android.view.View
+import android.widget.Button
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import com.sevenlayer.tictactoe.R
@@ -9,7 +11,6 @@ import com.sevenlayer.tictactoe.core.connection.BTConnection
 import com.sevenlayer.tictactoe.core.contracts.BoardContract
 import com.sevenlayer.tictactoe.core.game.GameInstance
 import com.sevenlayer.tictactoe.core.presenters.BoardPresenter
-import org.w3c.dom.Text
 import timber.log.Timber
 
 class BoardActivity : AppCompatActivity(), BoardContract.View {
@@ -26,6 +27,8 @@ class BoardActivity : AppCompatActivity(), BoardContract.View {
     private lateinit var two_zero: TextView
     private lateinit var two_one: TextView
     private lateinit var two_two: TextView
+
+    private lateinit var reset: Button
 
     private var boardHolder = arrayOf<Array<TextView>>()
 
@@ -51,6 +54,18 @@ class BoardActivity : AppCompatActivity(), BoardContract.View {
         two_one = findViewById(R.id.two_one)
         two_two = findViewById(R.id.two_two)
 
+        reset = findViewById(R.id.reset)
+
+        reset.visibility = if (GameInstance.isServer()) {
+            View.VISIBLE
+        } else {
+            View.GONE
+        }
+
+        reset.setOnClickListener {
+            GameInstance.resetBoard()
+        }
+
         initBoard()
         updateScore(GameInstance.getScore())
 
@@ -66,23 +81,11 @@ class BoardActivity : AppCompatActivity(), BoardContract.View {
     }
 
     private fun initBoard() {
-//        boardHolder[0][0] = zero_zero
-//        boardHolder[0][1] = zero_one
-//        boardHolder[0][2] = zero_two
-
         val zeroRow = arrayOf(zero_zero, zero_one, zero_two)
         boardHolder += zeroRow
 
-//        boardHolder[1][0] = one_zero
-//        boardHolder[1][1] = one_one
-//        boardHolder[1][2] = one_two
-
         val firstRow = arrayOf(one_zero, one_one, one_two)
         boardHolder += firstRow
-
-//        boardHolder[2][0] = two_zero
-//        boardHolder[2][1] = two_one
-//        boardHolder[2][2] = two_two
 
         val secondRow = arrayOf(two_zero, two_one, two_two)
         boardHolder += secondRow
@@ -124,7 +127,7 @@ class BoardActivity : AppCompatActivity(), BoardContract.View {
             score.text = if (GameInstance.isServer()) {
                 "X: $scr :O"
             } else {
-                "0: $scr :X"
+                "O: $scr :X"
             }
         }
     }
@@ -135,12 +138,7 @@ class BoardActivity : AppCompatActivity(), BoardContract.View {
                 for (j in 0..2) {
                     if (board[i][j] == 0) boardHolder[i][j].text = ""
                     if (board[i][j] == 1) boardHolder[i][j].text = "X"
-                    if (board[i][j] == 2) boardHolder[i][j].text = ")"
-                    when(board[i][j]) {
-                        0 -> boardHolder[i][j].text = ""
-                        1 -> boardHolder[i][j].text = "X"
-                        2 -> boardHolder[i][j].text = "O"
-                    }
+                    if (board[i][j] == 2) boardHolder[i][j].text = "O"
                 }
             }
         }

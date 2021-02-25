@@ -14,7 +14,7 @@
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="10dp"
-        android:text="SCORE"
+        android:text="@string/score"
         android:textColor="@color/white"
         android:fontFamily="@font/montserrat_extra_bold"
         android:textSize="24sp"/>
@@ -199,5 +199,19 @@
         </LinearLayout>
 
     </LinearLayout>
+
+    <Button
+        android:id="@+id/reset"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/reset"
+        android:layout_marginStart="10dp"
+        android:layout_marginEnd="10dp"
+        android:layout_marginBottom="20dp"
+        android:background="@drawable/round_corner_button"
+        android:layout_alignParentBottom="true"
+        android:textColor="@color/black"
+        android:textSize="18sp"
+        android:fontFamily="@font/montserrat_bold"/>
 
 </RelativeLayout>

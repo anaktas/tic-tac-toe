@@ -43,6 +43,5 @@ class BoardPresenter(private val view: BoardContract.View) : BoardContract.Prese
     override fun move(row: Int, col: Int) {
         Timber.d("move()")
         GameInstance.makeMovement(row, col)
-        GameInstance.evaluateGame()
     }
 }

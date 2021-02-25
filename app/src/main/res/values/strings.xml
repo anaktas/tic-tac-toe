@@ -3,7 +3,7 @@
     <string name="title_activity_launch">LaunchActivity</string>
     <string name="hello_world">Hello Square World!</string>
     <string name="welcome">Welcome! In order to continue with the game, you have to allow the location permissions and enable your bluetooth. If you wonder why location permissions, it\'s because the android needs this permissions in order to return the list with the visible bluetooth devices.</string>
-    <string name="pairing_advice">Please pair manually your phone with your opponent\'s phone and then continue with the game. Tap the "Open Bluetooth Settings" button</string>
+    <string name="pairing_advice">Please pair manually your phone with your opponent\'s phone and then continue with the game. Tap the "Open Bluetooth Settings" button in order to pair your device and then tap the "continue" button.</string>
     <string name="continue_txt">Continue</string>
     <string name="continue_as_server">Host the game (X)</string>
     <string name="continue_as_client">Be the guest (O)</string>
@@ -18,4 +18,5 @@
     <string name="connecting">Connecting</string>
     <string name="please_wait">Please wait…</string>
     <string name="bt_connetion_failure">Something went wrong while trying to establish a BT connection.</string>
+    <string name="reset">RESET</string>
 </resources>
