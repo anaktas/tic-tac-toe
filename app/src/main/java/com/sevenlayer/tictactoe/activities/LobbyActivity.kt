@@ -1,12 +1,16 @@
 package com.sevenlayer.tictactoe.activities
 
-import androidx.appcompat.app.AppCompatActivity
+import android.app.Activity
+import android.content.Context
+import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import android.widget.Button
 import android.widget.ProgressBar
 import android.widget.TextView
+import androidx.appcompat.app.AppCompatActivity
 import com.sevenlayer.tictactoe.R
+import com.sevenlayer.tictactoe.core.connection.BTConnection
 import com.sevenlayer.tictactoe.core.contracts.LobbyContract
 import com.sevenlayer.tictactoe.core.game.GameInstance
 import com.sevenlayer.tictactoe.core.presenters.LobbyPresenter
@@ -31,7 +35,7 @@ class LobbyActivity : AppCompatActivity(), LobbyContract.View {
         continueButton.visibility = View.GONE
 
         continueButton.setOnClickListener {
-            moveToBoardScreen()
+            presenter.moveToBoardScreen()
         }
 
         statusMessage.text = if (GameInstance.isServer()) {
@@ -43,6 +47,14 @@ class LobbyActivity : AppCompatActivity(), LobbyContract.View {
         progressBar.visibility = View.GONE
 
         presenter.startConnection()
+    }
+
+    override fun onBackPressed() {
+        BTConnection.die()
+        GameInstance.die()
+        startActivity(Intent(this, ServerClientPickupActivity::class.java))
+        overridePendingTransition(R.anim.fade_in, R.anim.fade_out)
+        finish()
     }
 
     override fun onDestroy() {
@@ -81,7 +93,7 @@ class LobbyActivity : AppCompatActivity(), LobbyContract.View {
         }
     }
 
-    private fun moveToBoardScreen() {
+    override fun provideContext(): Context = this
 
-    }
+    override fun provideActivity(): Activity = this
 }

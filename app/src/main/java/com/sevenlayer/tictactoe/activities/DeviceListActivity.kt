@@ -1,6 +1,8 @@
 package com.sevenlayer.tictactoe.activities
 
+import android.app.Activity
 import android.bluetooth.BluetoothDevice
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
@@ -10,6 +12,7 @@ import com.sevenlayer.tictactoe.R
 import com.sevenlayer.tictactoe.adapters.BTAdapter
 import com.sevenlayer.tictactoe.core.connection.BTConnection
 import com.sevenlayer.tictactoe.core.contracts.DeviceListContract
+import com.sevenlayer.tictactoe.core.game.GameInstance
 import com.sevenlayer.tictactoe.core.presenters.DeviceListPresenter
 
 class DeviceListActivity : AppCompatActivity(), DeviceListContract.View {
@@ -28,10 +31,23 @@ class DeviceListActivity : AppCompatActivity(), DeviceListContract.View {
         setPresenter(DeviceListPresenter(this))
     }
 
+    override fun onBackPressed() {
+        BTConnection.die()
+        GameInstance.die()
+        startActivity(Intent(this, ServerClientPickupActivity::class.java))
+        overridePendingTransition(R.anim.fade_in, R.anim.fade_out)
+        finish()
+    }
+
     override fun onResume() {
         super.onResume()
 
         presenter.fetchDevices()
+    }
+
+    override fun onDestroy() {
+        presenter.onDestroy()
+        super.onDestroy()
     }
 
     override fun setPresenter(presenter: DeviceListContract.Presenter) {
@@ -43,7 +59,7 @@ class DeviceListActivity : AppCompatActivity(), DeviceListContract.View {
             list.invalidate()
 
             adapter = BTAdapter(deviceList) { device ->
-                setDeviceAndMoveAlong(device)
+                presenter.setDeviceAndMoveAlong(device)
             }
 
             list.adapter = adapter
@@ -52,15 +68,7 @@ class DeviceListActivity : AppCompatActivity(), DeviceListContract.View {
         }
     }
 
-    /**
-     * Sets the server BT device in the connection instance and moves
-     * along to the lobby screen.
-     */
-    private fun setDeviceAndMoveAlong(device: BluetoothDevice) {
-        BTConnection.setDevice(device)
+    override fun provideContext(): Context = this
 
-        startActivity(Intent(this, LobbyActivity::class.java))
-        overridePendingTransition(R.anim.fade_in, R.anim.fade_out)
-        finish()
-    }
+    override fun provideActivity(): Activity = this
 }

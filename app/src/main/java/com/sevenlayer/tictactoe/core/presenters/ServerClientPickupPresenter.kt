@@ -1,5 +1,9 @@
 package com.sevenlayer.tictactoe.core.presenters
 
+import android.content.Intent
+import com.sevenlayer.tictactoe.R
+import com.sevenlayer.tictactoe.activities.DeviceListActivity
+import com.sevenlayer.tictactoe.activities.LobbyActivity
 import com.sevenlayer.tictactoe.core.connection.BTConnection
 import com.sevenlayer.tictactoe.core.contracts.ServerClientPickupContract
 import com.sevenlayer.tictactoe.core.game.GameInstance
@@ -13,16 +17,17 @@ import timber.log.Timber
 /**
  * @author Anastasios Daris (t.daris@7linternational.com)
  */
-class ServerClientPickupPresenter(private val view: ServerClientPickupContract.View): ServerClientPickupContract.Presenter {
+class ServerClientPickupPresenter(private var view: ServerClientPickupContract.View?): ServerClientPickupContract.Presenter {
     private val compositeDisposable: CompositeDisposable = CompositeDisposable()
 
     override fun onDestroy() {
         compositeDisposable.clear()
+        view = null
     }
 
     override fun continueAsServer() {
         Timber.d("continueAsServer()")
-        view.startLoading()
+        view?.startLoading()
         GameInstance.setPlayerType(true)
 
         runBlocking {
@@ -40,32 +45,38 @@ class ServerClientPickupPresenter(private val view: ServerClientPickupContract.V
                         }
                         .subscribe({ status ->
                             Timber.d("Received status: $status")
-                            view.stopLoading()
+                            view?.stopLoading()
 
                             if (status == BTConnection.BTConnectionStatus.CONNECTED) {
-                                view.continueToLobby()
+                                view?.let {
+                                    it.provideContext().startActivity(Intent(it.provideContext(), LobbyActivity::class.java))
+                                    it.provideActivity().overridePendingTransition(R.anim.fade_in, R.anim.fade_out)
+                                    it.provideActivity().finish()
+                                }
                             }
 
                             if (status == BTConnection.BTConnectionStatus.FAILED) {
-                                view.onConnectionFailed()
+                                view?.onConnectionFailed()
                             }
                         }, { t ->
                             Timber.e(t)
-                            view.stopLoading()
-                            view.onConnectionFailed()
+                            view?.stopLoading()
+                            view?.onConnectionFailed()
                         })
                 )
-
-                //BTConnection.initServer()
             }
         }
     }
 
     override fun continueAsClient() {
-        view.startLoading()
-        GameInstance.setPlayerType(false)
-        view.stopLoading()
+        view?.let {
+            it.startLoading()
+            GameInstance.setPlayerType(false)
+            it.stopLoading()
 
-        view.continueToDeviceList()
+            it.provideContext().startActivity(Intent(it.provideContext(), DeviceListActivity::class.java))
+            it.provideActivity().overridePendingTransition(R.anim.fade_in, R.anim.fade_out)
+            it.provideActivity().finish()
+        }
     }
 }

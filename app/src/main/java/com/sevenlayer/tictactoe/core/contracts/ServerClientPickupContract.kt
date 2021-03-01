@@ -1,5 +1,8 @@
 package com.sevenlayer.tictactoe.core.contracts
 
+import android.app.Activity
+import android.content.Context
+
 /**
  * The MVP contract of the server/client pickup screen.
  *
@@ -26,19 +29,13 @@ interface ServerClientPickupContract {
         fun stopLoading()
 
         /**
-         * Continues to the lobby screen.
-         */
-        fun continueToLobby()
-
-        /**
          * Displays a toast with a message to the user about the connection failure.
          */
         fun onConnectionFailed()
 
-        /**
-         * Continues to the bonded devices list screen.
-         */
-        fun continueToDeviceList()
+        fun provideContext(): Context
+
+        fun provideActivity(): Activity
     }
 
     /**

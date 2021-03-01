@@ -1,5 +1,6 @@
 package com.sevenlayer.tictactoe.core.contracts
 
+import android.app.Activity
 import android.content.Context
 import android.content.Intent
 
@@ -25,20 +26,14 @@ interface LaunchContract {
         fun onBTNotSupported()
 
         /**
-         * Enables the BT by starting the corresponding
-         * intent.
-         */
-        fun onEnableBT(intent: Intent)
-
-        /**
-         * Provides a context to the presenter.
+         * Provides a context reference to the presenter.
          */
         fun provideContext(): Context
 
         /**
-         * Moves to the next screen.
+         * Provides an activity reference to the presenter.
          */
-        fun moveAlong()
+        fun provideActivity(): Activity
     }
 
     /**
