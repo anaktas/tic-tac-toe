@@ -1,11 +1,13 @@
 package com.sevenlayer.tictactoe.activities
 
+import android.app.Activity
 import android.app.ProgressDialog
+import android.content.Context
 import android.content.Intent
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.Button
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
 import com.sevenlayer.tictactoe.R
 import com.sevenlayer.tictactoe.core.contracts.ServerClientPickupContract
 import com.sevenlayer.tictactoe.core.presenters.ServerClientPickupPresenter
@@ -42,8 +44,8 @@ class ServerClientPickupActivity : AppCompatActivity(), ServerClientPickupContra
         }
 
         progress = ProgressDialog(this)
-        progress.setTitle("Connecting")
-        progress.setMessage("Please wait...")
+        progress.setTitle(getString(R.string.connecting))
+        progress.setMessage(getString(R.string.please_wait))
     }
 
     override fun onBackPressed() {
@@ -64,34 +66,20 @@ class ServerClientPickupActivity : AppCompatActivity(), ServerClientPickupContra
     override fun startLoading() {
         Timber.d("startLoading()")
         progress.show()
-//        Toast.makeText(
-//            this,
-//            "Please wait. We will transition to the next screen automatically...",
-//            Toast.LENGTH_SHORT).show()
     }
 
     override fun stopLoading() {
         Timber.d("stopLoading()")
         if (progress.isShowing) {
-            Timber.d("Dismissing")
             progress.dismiss()
         }
     }
 
-    override fun continueToLobby() {
-        Timber.d("Continue to lobby screen")
-        startActivity(Intent(this, LobbyActivity::class.java))
-        overridePendingTransition(R.anim.fade_in, R.anim.fade_out)
-        finish()
-    }
-
     override fun onConnectionFailed() {
-        Toast.makeText(this, "Something went wrong while trying to establish a BT connection.", Toast.LENGTH_LONG).show()
+        Toast.makeText(this, getString(R.string.bt_connetion_failure), Toast.LENGTH_LONG).show()
     }
 
-    override fun continueToDeviceList() {
-        startActivity(Intent(this, DeviceListActivity::class.java))
-        overridePendingTransition(R.anim.fade_in, R.anim.fade_out)
-        finish()
-    }
+    override fun provideContext(): Context = this
+
+    override fun provideActivity(): Activity = this
 }

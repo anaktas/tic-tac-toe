@@ -12,6 +12,7 @@ import java.io.DataInputStream
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
+import java.lang.Exception
 import java.util.*
 
 /**
@@ -274,24 +275,30 @@ object BTConnection {
      * Starts listening for incoming messages.
      */
     private fun startListening() {
+        Timber.d("startListening()")
         listeningJob?.cancel()
         listeningJob = CoroutineScope(Dispatchers.IO).launch {
             inputStream?.let {
                 while (true) {
-                    try {
-                        val buffer = ByteArray(1024)
-                        val dataInputStream = DataInputStream(it)
+                    if (it.available() == 0) {
+                        try {
+                            val buffer = ByteArray(1024)
+                            val dataInputStream = DataInputStream(it)
 
-                        val bytes = dataInputStream.read(buffer)
-                        val message = String(buffer, 0, bytes)
+                            Timber.d("Reading from input stream")
+                            val bytes = dataInputStream.read(buffer, 0, buffer.size)
+                            val message = String(buffer, 0, bytes)
 
-                        delay(3000)
-                        messageObservable.onNext(message)
+                            Timber.d("Receiving: $message")
 
-                        delay(300)
-                    } catch (e: IOException) {
-                        Timber.e(e)
+                            delay(300)
+                            messageObservable.onNext(message)
+                        } catch (e: IOException) {
+                            Timber.e(e)
+                        }
                     }
+
+                    delay(300)
                 }
             }
         }
@@ -333,7 +340,7 @@ object BTConnection {
                 }
 
                 clientSocket?.close()
-            } catch (e: IOException) {
+            } catch (e: Exception) {
                 Timber.e(e)
             }
         }.start()
@@ -343,12 +350,14 @@ object BTConnection {
      * Sends a message to the BT device.
      */
     fun send(message: String?) {
+        Timber.d("Sending: $message")
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 message?.let {
+                    Timber.d("Writing to stream")
                     outputStream?.write(it.toByteArray())
                 }
-            } catch (e: IOException) {
+            } catch (e: Exception) {
                 Timber.e(e)
             }
         }.start()

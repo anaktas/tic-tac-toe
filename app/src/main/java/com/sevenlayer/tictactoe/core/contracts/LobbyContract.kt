@@ -1,5 +1,8 @@
 package com.sevenlayer.tictactoe.core.contracts
 
+import android.app.Activity
+import android.content.Context
+
 /**
  * The MVP contract of the lobby screen.
  *
@@ -34,6 +37,10 @@ interface LobbyContract {
          * Displays an error message in case of a connection failure.
          */
         fun onFailure(message: String?)
+
+        fun provideContext(): Context
+
+        fun provideActivity(): Activity
     }
 
     /**
@@ -49,5 +56,7 @@ interface LobbyContract {
          * Starts the connection process.
          */
         fun startConnection()
+
+        fun moveToBoardScreen()
     }
 }

@@ -66,6 +66,8 @@ object GameInstance {
      */
     private val board = Array(3) { IntArray(3) }
 
+    private var gameEnded: Boolean = false
+
     /**
      * The board change/update observable.
      */
@@ -85,6 +87,7 @@ object GameInstance {
 
         // The first player is always the server player
         turn = SERVER_PLAYER
+        gameEnded = false
     }
 
     /**
@@ -108,15 +111,9 @@ object GameInstance {
     fun getClientScore(): Int = clientScore
 
     /**
-     * Returns the score board string according to who is the current player.
+     * Returns the score board string.
      */
-    fun getScore(): String {
-        return if (isServer()) {
-            "$serverScore - $clientScore"
-        } else {
-            "$clientScore - $serverScore"
-        }
-    }
+    fun getScore(): String = "X: $serverScore - $clientScore :O"
 
     /**
      * Starts listening the BT input stream.
@@ -128,23 +125,30 @@ object GameInstance {
             .subscribeOn(AndroidSchedulers.mainThread())
             .subscribe({ message: String ->
                 if (!TextUtils.isEmpty(message)) {
-                    val entries = message.split(",".toRegex()).toTypedArray()
-                    if (entries != null && entries.isNotEmpty()) {
-                        val row = entries[0].toInt()
-                        val col = entries[1].toInt()
-                        val playerType = entries[1].toInt()
-
-                        // If the server player played, then it's the
-                        // clients turn
-                        turn = if (playerType == SERVER_PLAYER) {
-                            CLIENT_PLAYER
-                        } else { // otherwise it's the servers turn.
-                            SERVER_PLAYER
-                        }
-                        updateBoard(row, col, playerType)
-                    } else {
+                    Timber.d("Message: $message")
+                    if (message == "reset") {
                         // The server had send a reset message
                         clearBoard()
+                        gameEnded = false
+                        turn = SERVER_PLAYER
+                        boardObservable.onNext(board)
+                    } else {
+                        val entries = message.split(",".toRegex()).toTypedArray()
+                        if (entries != null && entries.isNotEmpty()) {
+                            val row = entries[0].toInt()
+                            val col = entries[1].toInt()
+                            val playerType = entries[2].toInt()
+
+                            // If the server player played, then it's the
+                            // clients turn
+                            turn = if (turn == SERVER_PLAYER) {
+                                CLIENT_PLAYER
+                            } else { // otherwise it's the servers turn.
+                                SERVER_PLAYER
+                            }
+
+                            updateBoard(row, col, playerType)
+                        }
                     }
                 }
             }) { t: Throwable? -> Timber.e(t) })
@@ -153,13 +157,14 @@ object GameInstance {
     /**
      * Updates the game board and notifies the observers.
      */
-    fun updateBoard(row: Int, col: Int, player: Int) {
+    private fun updateBoard(row: Int, col: Int, player: Int) {
         if (player == SERVER_PLAYER) {
             board[row][col] = SERVER_MARKER
         } else {
             board[row][col] = CLIENT_MARKER
         }
 
+        printBoard()
         boardObservable.onNext(board)
         evaluateGame()
     }
@@ -167,7 +172,7 @@ object GameInstance {
     /**
      * Evaluates the game status and notifies the observers.
      */
-    fun evaluateGame(): Boolean {
+    private fun evaluateGame(): Boolean {
         // Row evaluation
         if (board[0][0] == board[0][1] && board[0][1] == board[0][2]) {
             // I.e.
@@ -175,12 +180,13 @@ object GameInstance {
             // [0, 0, 0]
             // [0, 0, 0]
             if (board[0][0] == SERVER_MARKER || board[0][0] == CLIENT_MARKER) {
-                if (isServer()) {
-                    serverScore++
-                } else {
-                    clientScore++
-                }
+                turn = SERVER_PLAYER
+                if (board[0][0] == SERVER_MARKER) serverScore++
+                if (board[0][0] == CLIENT_MARKER) clientScore++
+                gameEnded = true
                 winnerObservable.onNext(player)
+                clearBoard()
+                boardObservable.onNext(board)
                 return true
             }
         }
@@ -191,12 +197,13 @@ object GameInstance {
             // [1, 1, 1]
             // [0, 0, 0]
             if (board[1][0] == SERVER_MARKER || board[1][0] == CLIENT_MARKER) {
-                if (isServer()) {
-                    serverScore++
-                } else {
-                    clientScore++
-                }
+                turn = SERVER_PLAYER
+                if (board[1][0] == SERVER_MARKER) serverScore++
+                if (board[1][0] == CLIENT_MARKER) clientScore++
+                gameEnded = true
                 winnerObservable.onNext(player)
+                clearBoard()
+                boardObservable.onNext(board)
                 return true
             }
         }
@@ -207,12 +214,13 @@ object GameInstance {
             // [0, 0, 0]
             // [1, 1, 1]
             if (board[2][0] == SERVER_MARKER || board[2][0] == CLIENT_MARKER) {
-                if (isServer()) {
-                    serverScore++
-                } else {
-                    clientScore++
-                }
+                turn = SERVER_PLAYER
+                if (board[2][0] == SERVER_MARKER) serverScore++
+                if (board[2][0] == CLIENT_MARKER) clientScore++
+                gameEnded = true
                 winnerObservable.onNext(player)
+                clearBoard()
+                boardObservable.onNext(board)
                 return true
             }
         }
@@ -224,12 +232,13 @@ object GameInstance {
             // [1, 0, 0]
             // [1, 0, 0]
             if (board[0][0] == SERVER_MARKER || board[0][0] == CLIENT_MARKER) {
-                if (isServer()) {
-                    serverScore++
-                } else {
-                    clientScore++
-                }
+                turn = SERVER_PLAYER
+                if (board[0][0] == SERVER_MARKER) serverScore++
+                if (board[0][0] == CLIENT_MARKER) clientScore++
+                gameEnded = true
                 winnerObservable.onNext(player)
+                clearBoard()
+                boardObservable.onNext(board)
                 return true
             }
         }
@@ -240,12 +249,13 @@ object GameInstance {
             // [0, 1, 0]
             // [0, 1, 0]
             if (board[0][1] == SERVER_MARKER || board[0][1] == CLIENT_MARKER) {
-                if (isServer()) {
-                    serverScore++
-                } else {
-                    clientScore++
-                }
+                turn = SERVER_PLAYER
+                if (board[0][1] == SERVER_MARKER) serverScore++
+                if (board[0][1] == CLIENT_MARKER) clientScore++
+                gameEnded = true
                 winnerObservable.onNext(player)
+                clearBoard()
+                boardObservable.onNext(board)
                 return true
             }
         }
@@ -256,12 +266,13 @@ object GameInstance {
             // [0, 0, 1]
             // [0, 0, 1]
             if (board[0][2] == SERVER_MARKER || board[0][2] == CLIENT_MARKER) {
-                if (isServer()) {
-                    serverScore++
-                } else {
-                    clientScore++
-                }
+                turn = SERVER_PLAYER
+                if (board[0][2] == SERVER_MARKER) serverScore++
+                if (board[0][2] == CLIENT_MARKER) clientScore++
+                gameEnded = true
                 winnerObservable.onNext(player)
+                clearBoard()
+                boardObservable.onNext(board)
                 return true
             }
         }
@@ -273,12 +284,13 @@ object GameInstance {
             // [0, 1, 0]
             // [0, 0, 1]
             if (board[0][0] == SERVER_MARKER || board[0][0] == CLIENT_MARKER) {
-                if (isServer()) {
-                    serverScore++
-                } else {
-                    clientScore++
-                }
+                turn = SERVER_PLAYER
+                if (board[0][0] == SERVER_MARKER) serverScore++
+                if (board[0][0] == CLIENT_MARKER) clientScore++
+                gameEnded = true
                 winnerObservable.onNext(player)
+                clearBoard()
+                boardObservable.onNext(board)
                 return true
             }
         }
@@ -290,13 +302,15 @@ object GameInstance {
             // [0, 1, 0]
             // [1, 0, 0]
             if (board[0][2] == SERVER_MARKER || board[0][2] == CLIENT_MARKER) {
-                if (isServer()) {
-                    serverScore++
-                } else {
-                    clientScore++
-                }
+                turn = SERVER_PLAYER
+                if (board[0][2] == SERVER_MARKER) serverScore++
+                if (board[0][2] == CLIENT_MARKER) clientScore++
+                gameEnded = true
                 winnerObservable.onNext(player)
+                clearBoard()
+                boardObservable.onNext(board)
                 return true
+
             }
         }
 
@@ -307,8 +321,15 @@ object GameInstance {
      * Makes a movement and sends the move to the other side.
      */
     fun makeMovement(row: Int, col: Int) {
+        Timber.d("Movement: $row, $col, $player")
         if (isServer() && turn != SERVER_PLAYER) return
         if (!isServer() && turn != CLIENT_PLAYER) return
+        if (gameEnded) return
+
+        // Just a precaution measure in order to avoid
+        // an attempt to change a tile which is already
+        // filled.
+        if (board[row][col] != 0) return
 
         turn = if (isServer()) {
             CLIENT_PLAYER
@@ -316,10 +337,16 @@ object GameInstance {
             SERVER_PLAYER
         }
 
-        if (!evaluateGame()) {
-            val message = "$row,$col,$player"
-            BTConnection.send(message)
+        board[row][col] = if (isServer()) {
+            SERVER_MARKER
+        } else {
+            CLIENT_MARKER
         }
+
+        val message = "$row,$col,$player"
+        BTConnection.send(message)
+
+        evaluateGame()
     }
 
     /**
@@ -327,12 +354,31 @@ object GameInstance {
      */
     fun isServer(): Boolean = (player == SERVER_PLAYER)
 
-    fun clearBoard() {
+    fun canMove(row: Int, col: Int): Boolean {
+        val boardValue = board[row][col]
+        if (isServer() && turn != SERVER_PLAYER) return false
+        if (!isServer() && turn != CLIENT_PLAYER) return false
+        if (gameEnded) return false
+
+        if (boardValue != 0) return false
+
+        return true
+    }
+
+    private fun clearBoard() {
         for (i in 0..2) {
             for (j in 0..2) {
                 board[i][j] = 0
             }
         }
+    }
+
+    fun resetBoard() {
+        gameEnded = false
+        turn = SERVER_PLAYER;
+        clearBoard()
+        boardObservable.onNext(board)
+        BTConnection.send("reset")
     }
 
     /**
@@ -363,5 +409,14 @@ object GameInstance {
      */
     private fun addDisposable(disposable: Disposable) {
         compositeDisposable.add(disposable)
+    }
+
+    private fun printBoard() {
+        for (i in 0..2) {
+            for (j in 0..2) {
+                val boarValue = board[i][j]
+                Timber.d("board[$i][$j] = $boarValue")
+            }
+        }
     }
 }
