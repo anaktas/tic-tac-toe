@@ -111,15 +111,9 @@ object GameInstance {
     fun getClientScore(): Int = clientScore
 
     /**
-     * Returns the score board string according to who is the current player.
+     * Returns the score board string.
      */
-    fun getScore(): String {
-        return if (isServer()) {
-            "$serverScore - $clientScore"
-        } else {
-            "$clientScore - $serverScore"
-        }
-    }
+    fun getScore(): String = "X: $serverScore - $clientScore :O"
 
     /**
      * Starts listening the BT input stream.
@@ -143,7 +137,7 @@ object GameInstance {
                         if (entries != null && entries.isNotEmpty()) {
                             val row = entries[0].toInt()
                             val col = entries[1].toInt()
-                            val playerType = entries[1].toInt()
+                            val playerType = entries[2].toInt()
 
                             // If the server player played, then it's the
                             // clients turn
@@ -178,7 +172,7 @@ object GameInstance {
     /**
      * Evaluates the game status and notifies the observers.
      */
-    fun evaluateGame(): Boolean {
+    private fun evaluateGame(): Boolean {
         // Row evaluation
         if (board[0][0] == board[0][1] && board[0][1] == board[0][2]) {
             // I.e.
@@ -186,11 +180,9 @@ object GameInstance {
             // [0, 0, 0]
             // [0, 0, 0]
             if (board[0][0] == SERVER_MARKER || board[0][0] == CLIENT_MARKER) {
-                if (isServer()) {
-                    serverScore++
-                } else {
-                    clientScore++
-                }
+                turn = SERVER_PLAYER
+                if (board[0][0] == SERVER_MARKER) serverScore++
+                if (board[0][0] == CLIENT_MARKER) clientScore++
                 gameEnded = true
                 winnerObservable.onNext(player)
                 clearBoard()
@@ -205,11 +197,9 @@ object GameInstance {
             // [1, 1, 1]
             // [0, 0, 0]
             if (board[1][0] == SERVER_MARKER || board[1][0] == CLIENT_MARKER) {
-                if (isServer()) {
-                    serverScore++
-                } else {
-                    clientScore++
-                }
+                turn = SERVER_PLAYER
+                if (board[1][0] == SERVER_MARKER) serverScore++
+                if (board[1][0] == CLIENT_MARKER) clientScore++
                 gameEnded = true
                 winnerObservable.onNext(player)
                 clearBoard()
@@ -224,11 +214,9 @@ object GameInstance {
             // [0, 0, 0]
             // [1, 1, 1]
             if (board[2][0] == SERVER_MARKER || board[2][0] == CLIENT_MARKER) {
-                if (isServer()) {
-                    serverScore++
-                } else {
-                    clientScore++
-                }
+                turn = SERVER_PLAYER
+                if (board[2][0] == SERVER_MARKER) serverScore++
+                if (board[2][0] == CLIENT_MARKER) clientScore++
                 gameEnded = true
                 winnerObservable.onNext(player)
                 clearBoard()
@@ -244,11 +232,9 @@ object GameInstance {
             // [1, 0, 0]
             // [1, 0, 0]
             if (board[0][0] == SERVER_MARKER || board[0][0] == CLIENT_MARKER) {
-                if (isServer()) {
-                    serverScore++
-                } else {
-                    clientScore++
-                }
+                turn = SERVER_PLAYER
+                if (board[0][0] == SERVER_MARKER) serverScore++
+                if (board[0][0] == CLIENT_MARKER) clientScore++
                 gameEnded = true
                 winnerObservable.onNext(player)
                 clearBoard()
@@ -263,11 +249,9 @@ object GameInstance {
             // [0, 1, 0]
             // [0, 1, 0]
             if (board[0][1] == SERVER_MARKER || board[0][1] == CLIENT_MARKER) {
-                if (isServer()) {
-                    serverScore++
-                } else {
-                    clientScore++
-                }
+                turn = SERVER_PLAYER
+                if (board[0][1] == SERVER_MARKER) serverScore++
+                if (board[0][1] == CLIENT_MARKER) clientScore++
                 gameEnded = true
                 winnerObservable.onNext(player)
                 clearBoard()
@@ -282,11 +266,9 @@ object GameInstance {
             // [0, 0, 1]
             // [0, 0, 1]
             if (board[0][2] == SERVER_MARKER || board[0][2] == CLIENT_MARKER) {
-                if (isServer()) {
-                    serverScore++
-                } else {
-                    clientScore++
-                }
+                turn = SERVER_PLAYER
+                if (board[0][2] == SERVER_MARKER) serverScore++
+                if (board[0][2] == CLIENT_MARKER) clientScore++
                 gameEnded = true
                 winnerObservable.onNext(player)
                 clearBoard()
@@ -302,11 +284,9 @@ object GameInstance {
             // [0, 1, 0]
             // [0, 0, 1]
             if (board[0][0] == SERVER_MARKER || board[0][0] == CLIENT_MARKER) {
-                if (isServer()) {
-                    serverScore++
-                } else {
-                    clientScore++
-                }
+                turn = SERVER_PLAYER
+                if (board[0][0] == SERVER_MARKER) serverScore++
+                if (board[0][0] == CLIENT_MARKER) clientScore++
                 gameEnded = true
                 winnerObservable.onNext(player)
                 clearBoard()
@@ -322,16 +302,15 @@ object GameInstance {
             // [0, 1, 0]
             // [1, 0, 0]
             if (board[0][2] == SERVER_MARKER || board[0][2] == CLIENT_MARKER) {
-                if (isServer()) {
-                    serverScore++
-                } else {
-                    clientScore++
-                }
+                turn = SERVER_PLAYER
+                if (board[0][2] == SERVER_MARKER) serverScore++
+                if (board[0][2] == CLIENT_MARKER) clientScore++
                 gameEnded = true
                 winnerObservable.onNext(player)
                 clearBoard()
                 boardObservable.onNext(board)
                 return true
+
             }
         }
 
@@ -379,6 +358,7 @@ object GameInstance {
         val boardValue = board[row][col]
         if (isServer() && turn != SERVER_PLAYER) return false
         if (!isServer() && turn != CLIENT_PLAYER) return false
+        if (gameEnded) return false
 
         if (boardValue != 0) return false
 

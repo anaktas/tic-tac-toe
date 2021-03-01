@@ -124,11 +124,7 @@ class BoardActivity : AppCompatActivity(), BoardContract.View {
 
     override fun updateScore(scr: String) {
         runOnUiThread {
-            score.text = if (GameInstance.isServer()) {
-                "X: $scr :O"
-            } else {
-                "O: $scr :X"
-            }
+            score.text = scr
         }
     }
 
