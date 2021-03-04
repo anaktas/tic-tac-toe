@@ -2,7 +2,7 @@
     <string name="app_name">TicTacToe</string>
     <string name="title_activity_launch">LaunchActivity</string>
     <string name="hello_world">Hello Square World!</string>
-    <string name="welcome">Καλώς ορίσατε! Για να συνεχίσετε στο παιχνίδι, θα πρέπει να επιτρέψετε τα σχετικά δικαιώματα τοποθεσίας και να ενεργοποιήσετε το bluetooth. Γιατί δικαιώματα τοποθεσίας; Γιατί το android τα χρειάζεται για να εντοπίσει τις διαθέσιμες bluetooth συσκευές.</string>
+    <string name="welcome">Καλώς ορίσατε! Για να συνεχίσετε στο παιχνίδι, θα πρέπει να να ενεργοποιήσετε το bluetooth. Πατήστε στο κουμπί "ΣΥΝΕΧΕΙΑ" και θα το ενεργοποιήσουμε εμείς.</string>
     <string name="pairing_advice">Παρακαλώ πραγματοποιήστε χειροκίνητα την bluetooth ζεύξη με το κινητό του αντιπάλου σας. Πατήστε το "Ρυθμίσεις Bluetooth" κουμπί για να το κάνετε αυτό και μετά πατήστε το κουμπί "συνέχεια".</string>
     <string name="continue_txt">Συνεχεια</string>
     <string name="continue_as_server">Φιλοξενηστε το παιχνιδι (X)</string>
