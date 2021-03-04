@@ -3,11 +3,13 @@ package com.sevenlayer.tictactoe;
 import android.app.Activity;
 import android.app.Application;
 import android.content.res.Configuration;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.StrictMode;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
 import androidx.multidex.MultiDexApplication;
 import timber.log.Timber;
 
@@ -43,15 +45,32 @@ public class AppDelegate extends MultiDexApplication implements Application.Acti
             StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder()
                     .detectDiskReads()
                     .detectDiskWrites()
+                    .detectCustomSlowCalls()
+                    .detectResourceMismatches()
+                    .detectUnbufferedIo()
                     .detectAll()
                     .penaltyLog()
                     .build());
-            StrictMode.setVmPolicy(new StrictMode.VmPolicy.Builder()
-                    .detectLeakedSqlLiteObjects()
-                    .detectLeakedClosableObjects()
-                    .detectAll()
-                    .penaltyLog()
-                    .build());
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                StrictMode.setVmPolicy(new StrictMode.VmPolicy.Builder()
+                        .detectLeakedSqlLiteObjects()
+                        .detectLeakedClosableObjects()
+                        .detectActivityLeaks()
+                        .detectNonSdkApiUsage()
+                        .detectLeakedRegistrationObjects()
+                        .detectAll()
+                        .penaltyLog()
+                        .build());
+            } else {
+                StrictMode.setVmPolicy(new StrictMode.VmPolicy.Builder()
+                        .detectLeakedSqlLiteObjects()
+                        .detectLeakedClosableObjects()
+                        .detectActivityLeaks()
+                        .detectLeakedRegistrationObjects()
+                        .detectAll()
+                        .penaltyLog()
+                        .build());
+            }
         }
 
         super.onCreate();
